@@ -143,16 +143,18 @@ CREATE TABLE listings (
 );
 
 -- 4. LISTING_PHOTOS
+-- photo_url: cloud URL (Cloudinary/S3), validated for image type (JPG/PNG), max file size
 CREATE TABLE listing_photos (
     id          SERIAL PRIMARY KEY,
     listing_id  INT REFERENCES listings(id) ON DELETE CASCADE,
-    photo_url   TEXT NOT NULL,
+    photo_url   TEXT NOT NULL,        -- cloud URL, not local path
     is_primary  BOOLEAN DEFAULT FALSE,
     caption     VARCHAR(200),
     sort_order  INT DEFAULT 0
 );
 
 -- 5. BOOKINGS
+-- guests_count: must be <= listing's max_guests, validated at booking creation
 CREATE TABLE bookings (
     id              SERIAL PRIMARY KEY,
     listing_id      INT REFERENCES listings(id),
@@ -169,6 +171,10 @@ CREATE TABLE bookings (
 );
 
 -- 6. PAYMENTS
+-- Gateway: PayMongo (GCash, Maya, GrabPay, ShopeePay, Visa/Mastercard, BPI/UBP/BDO bank transfer, QR Ph)
+-- Commission: platform fee deducted per transaction
+-- Refund flow: admin-initiated, tracked via status (pending -> refunded)
+-- Flow: Payment Intent -> attach method -> webhook confirms payment.paid or payment.failed
 CREATE TABLE payments (
     id              SERIAL PRIMARY KEY,
     booking_id      INT REFERENCES bookings(id),
@@ -196,6 +202,8 @@ CREATE TABLE payouts (
 );
 
 -- 8. REVIEWS
+-- Reviews only allowed after booking status = 'completed'
+-- One review per booking (enforced by UNIQUE on booking_id)
 CREATE TABLE reviews (
     id          SERIAL PRIMARY KEY,
     booking_id  INT UNIQUE REFERENCES bookings(id),
@@ -209,6 +217,9 @@ CREATE TABLE reviews (
 );
 
 -- 9. SUPPORT_TICKETS
+-- Admin ticket system: users submit tickets, admins respond via resolution field
+-- No real-time chat
+-- Categories: booking, payment, listing, account, other
 CREATE TABLE support_tickets (
     id              SERIAL PRIMARY KEY,
     user_id         INT REFERENCES users(id),
@@ -245,6 +256,9 @@ CREATE TABLE disputes (
 );
 
 -- 11. VERIFICATION_RECORDS
+-- Identity verification (Airbnb model): government ID (passport, driver's license, national ID) + selfie
+-- Host KYC: legal name, date of birth, residential address (required before payout)
+-- Admin review flow: pending -> approved/rejected
 CREATE TABLE verification_records (
     id              SERIAL PRIMARY KEY,
     user_id         INT REFERENCES users(id),
