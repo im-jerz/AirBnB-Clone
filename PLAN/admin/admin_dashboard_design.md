@@ -89,14 +89,13 @@ AirBnB-Clone/
 ### Core Tables
 
 ```sql
--- 1. USERS (guests + admins)
+-- 1. USERS (core auth data — no role field, role is implicit via hosts/admins tables)
 CREATE TABLE users (
     id            SERIAL PRIMARY KEY,
     email         VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     full_name     VARCHAR(100) NOT NULL,
     phone         VARCHAR(20),
-    role          VARCHAR(20) DEFAULT 'guest' CHECK (role IN ('guest','host','admin')),
     avatar_url    TEXT,
     is_active     BOOLEAN DEFAULT TRUE,
     is_verified   BOOLEAN DEFAULT FALSE,
@@ -104,7 +103,7 @@ CREATE TABLE users (
     updated_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. HOSTS (extends users)
+-- 2. HOSTS (extends users — a user is a host if their user_id exists here)
 CREATE TABLE hosts (
     id              SERIAL PRIMARY KEY,
     user_id         INT UNIQUE REFERENCES users(id) ON DELETE CASCADE,
@@ -116,7 +115,15 @@ CREATE TABLE hosts (
     verification_status VARCHAR(20) DEFAULT 'pending'
 );
 
--- 3. LISTINGS
+-- 3. ADMINS (extends users — a user is an admin if their user_id exists here)
+CREATE TABLE admins (
+    id              SERIAL PRIMARY KEY,
+    user_id         INT UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    clearance_level VARCHAR(50) DEFAULT 'standard',
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. LISTINGS (owned by hosts via host_id FK)
 CREATE TABLE listings (
     id              SERIAL PRIMARY KEY,
     host_id         INT REFERENCES hosts(id) ON DELETE CASCADE,
@@ -142,7 +149,7 @@ CREATE TABLE listings (
     updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. LISTING_PHOTOS
+-- 5. LISTING_PHOTOS
 -- photo_url: cloud URL (Cloudinary/S3), validated for image type (JPG/PNG), max file size
 CREATE TABLE listing_photos (
     id          SERIAL PRIMARY KEY,
@@ -153,7 +160,7 @@ CREATE TABLE listing_photos (
     sort_order  INT DEFAULT 0
 );
 
--- 5. BOOKINGS
+-- 6. BOOKINGS
 -- guests_count: must be <= listing's max_guests, validated at booking creation
 CREATE TABLE bookings (
     id              SERIAL PRIMARY KEY,
@@ -170,7 +177,7 @@ CREATE TABLE bookings (
     updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 6. PAYMENTS
+-- 7. PAYMENTS
 -- Gateway: PayMongo (GCash, Maya, GrabPay, ShopeePay, Visa/Mastercard, BPI/UBP/BDO bank transfer, QR Ph)
 -- Commission: platform fee deducted per transaction
 -- Refund flow: admin-initiated, tracked via status (pending -> refunded)
@@ -189,7 +196,7 @@ CREATE TABLE payments (
     created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 7. PAYOUTS
+-- 8. PAYOUTS
 CREATE TABLE payouts (
     id              SERIAL PRIMARY KEY,
     host_id         INT REFERENCES hosts(id),
@@ -201,7 +208,7 @@ CREATE TABLE payouts (
     created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 8. REVIEWS
+-- 9. REVIEWS
 -- Reviews only allowed after booking status = 'completed'
 -- One review per booking (enforced by UNIQUE on booking_id)
 CREATE TABLE reviews (
@@ -216,7 +223,7 @@ CREATE TABLE reviews (
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 9. SUPPORT_TICKETS
+-- 10. SUPPORT_TICKETS
 -- Admin ticket system: users submit tickets, admins respond via resolution field
 -- No real-time chat
 -- Categories: booking, payment, listing, account, other
@@ -237,7 +244,7 @@ CREATE TABLE support_tickets (
     updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 10. DISPUTES
+-- 11. DISPUTES
 CREATE TABLE disputes (
     id              SERIAL PRIMARY KEY,
     ticket_id       INT REFERENCES support_tickets(id),
@@ -255,7 +262,7 @@ CREATE TABLE disputes (
     resolved_at     TIMESTAMPTZ
 );
 
--- 11. VERIFICATION_RECORDS
+-- 12. VERIFICATION_RECORDS
 -- Identity verification (Airbnb model): government ID (passport, driver's license, national ID) + selfie
 -- Host KYC: legal name, date of birth, residential address (required before payout)
 -- Admin review flow: pending -> approved/rejected
@@ -272,7 +279,7 @@ CREATE TABLE verification_records (
     reviewed_at     TIMESTAMPTZ
 );
 
--- 12. SYSTEM_SETTINGS
+-- 13. SYSTEM_SETTINGS
 CREATE TABLE system_settings (
     id              SERIAL PRIMARY KEY,
     key             VARCHAR(100) UNIQUE NOT NULL,
@@ -282,7 +289,7 @@ CREATE TABLE system_settings (
     updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 13. ANALYTICS_SNAPSHOTS (daily aggregated data)
+-- 14. ANALYTICS_SNAPSHOTS (daily aggregated data)
 CREATE TABLE analytics_snapshots (
     id                  SERIAL PRIMARY KEY,
     date                DATE NOT NULL,
@@ -297,7 +304,7 @@ CREATE TABLE analytics_snapshots (
     created_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 14. AUDIT_LOG (security tracking)
+-- 15. AUDIT_LOG (security tracking)
 CREATE TABLE audit_log (
     id          SERIAL PRIMARY KEY,
     admin_id    INT REFERENCES users(id),
