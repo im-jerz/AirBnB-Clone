@@ -66,7 +66,38 @@
   │   │   └─ Total
   │   └─ [Book Now] button → redirect to Booking/Checkout
   └─ Near the bottom: Similar Rooms / Recommended section
+
 ```
+  ### 1.4 Room Comparison
+
+[Compare Rooms] — triggered from Search Results Page
+
+  ├─ User selects up to 3 rooms from search results
+  ├─ Each selected room is added to comparison list
+  ├─ Compare Button becomes active
+
+  ├─ Comparison View:
+  │   ├─ Room Image + Title
+  │   ├─ Price per night
+  │   ├─ Location
+  │   ├─ Capacity (guests allowed)
+  │   ├─ Amenities (WiFi, Kitchen, AC, Parking, Pool, etc.)
+  │   ├─ Ratings (★ average score)
+  │   ├─ Cancellation policy
+
+  ├─ Highlight Differences:
+  │   ├─ Cheapest price highlighted
+  │   ├─ Highest rated highlighted
+  │   ├─ Most amenities highlighted
+
+  ├─ Actions:
+  │   ├─ View Full Details → Room Detail Page
+  │   ├─ Remove from comparison
+  │   └─ Select preferred room
+
+  └─ Result:
+      └─ User proceeds to chosen Room Detail Page or Booking flow
+
 
 ---
 
@@ -221,7 +252,18 @@ Pending → Confirmed → In Progress → Completed → Reviewed
   │   ├─ Date
   │   └─ [Edit] / [Delete]
   └── Empty state: "No reviews yet"
+
 ```
+### 3.6 Rebook Previous Stay
+
+[My Bookings] → Completed Tab
+  ├─ Select previous booking
+  ├─ Click [Rebook]
+  ├─ System loads previous room details
+  ├─ User selects new dates
+  ├─ Availability check
+  ├─ Confirm booking
+  └─ Redirect to Checkout Page
 
 ---
 
@@ -302,8 +344,33 @@ Pending → Confirmed → In Progress → Completed → Reviewed
   ├─ Unread badge (nav bar)
   ├─ Mark as Read / Mark All as Read
   └─ Click → Navigate to relevant page
-```
 
+```
+### 6.1 Availability Notification
+
+[Room Detail Page] — when selected dates are unavailable
+
+  ├─ System detects that chosen dates are fully booked
+  ├─ Show message: "These dates are not available"
+
+  ├─ User Option:
+  │   ├─ [Notify Me When Available] button
+
+
+  ├─ Monitoring:
+  │   ├─ System checks room availability updates
+  │   ├─ If dates become available:
+  │   │   ├─ Trigger notification event
+
+  ├─ Notification Sent:
+  │   ├─ In-app notification
+  │   ├─ (Optional) Email notification
+  │   ├─ Message: "Good news! Your selected room is now available."
+
+  └─ Action After Notification:
+      ├─ User clicks notification
+      ├─ Redirect to Room Detail Page
+      └─ User proceeds to booking flow
 ---
 
 ## 7. Mobile Responsiveness
