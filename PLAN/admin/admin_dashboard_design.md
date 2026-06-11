@@ -315,6 +315,17 @@ CREATE TABLE audit_log (
     ip_address  INET,
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- 16. OTP_RECORDS (for phone/email verification and 2FA)
+CREATE TABLE otp_records (
+    id              SERIAL PRIMARY KEY,
+    user_id         INT REFERENCES users(id) ON DELETE CASCADE,
+    otp_code        VARCHAR(10) NOT NULL,
+    purpose         VARCHAR(50) NOT NULL,    -- 'signup','login','password_reset'
+    expires_at      TIMESTAMPTZ NOT NULL,
+    is_used         BOOLEAN DEFAULT FALSE,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
 ```
 
 ---
