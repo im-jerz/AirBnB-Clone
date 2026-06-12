@@ -1,0 +1,158 @@
+React.js
+Flask (Python)
+Oracle Database
+
+Host (Landlord) Module
+1. Property Management
+    Create new property listings
+    Edit property information
+    Upload and manage property images
+    Set pricing and occupancy limits
+    Manage amenities and house rules
+    Activate or deactivate property listings
+
+2. Booking & Reservation Management
+    View booking requests
+    Approve or reject reservations
+    Track active and upcoming bookings
+    Monitor completed reservations
+    Handle booking cancellations
+    View reservation history
+
+3. Availability & Calendar Management
+    Manage property availability
+    Block dates for maintenance or personal use
+    View booked and available dates
+    Prevent overlapping reservations
+    Maintain reservation schedules
+
+4. Guest Management
+    View guest profiles
+    Monitor guest booking history
+    Access guest reviews and ratings
+    Track guest activities
+    Manage guest communication records
+
+5. Revenue & Earnings Management
+    Track booking revenue
+    Monitor monthly and annual earnings
+    View payout history
+    Generate financial reports
+    Analyze property performance
+
+6. Reviews & Ratings Management
+    View guest reviews
+    Respond to guest feedback
+    Monitor property ratings
+    Track customer satisfaction
+
+7. Messaging & Communication
+    Communicate with guests
+    Manage booking inquiries
+    Receive reservation notifications
+    Handle guest concerns and requests
+
+8. Account & Profile Management
+    Update host profile information
+    Manage contact details
+    Change password and security settings
+    Configure notification preferences
+
+Database Modules (Oracle Database)
+Core Tables
+Users
+    User account information
+    Authentication credentials
+    Account status
+
+Host Profiles
+    Host information
+    Verification status
+    Overall ratings
+
+Properties
+    Property details
+    Pricing information
+    Listing status
+
+Property Images
+    Property photos
+    Image references
+
+Amenities
+    Property amenities
+    Feature classifications
+
+Bookings
+    Reservation records
+    Booking status
+    Check-in and check-out dates
+
+Payments
+    Payment transactions
+    Revenue records
+    Payout information
+
+Reviews
+    Guest ratings
+    Feedback and comments
+
+Messages
+    Host-guest communication records
+
+Notifications
+    Reservation updates
+    System alerts
+
+Availability Calendar
+    Available dates
+    Reserved dates
+    Blocked dates
+
+Proposed Host Dashboard Sections
+1. Dashboard Overview
+    Total Properties
+    Active Bookings
+    Pending Reservations
+    Monthly Revenue
+    Recent Activities
+
+2. Property Management
+    Property Listings
+    Add Property
+    Edit Property
+    Photo Management
+
+3. Booking Management
+    Reservation Requests
+    Active Bookings
+    Booking History
+
+4. Availability Calendar
+    Calendar View
+    Blocked Dates
+    Reservation Schedule
+
+5. Revenue & Earnings
+    Revenue Summary
+    Earnings Reports
+    Payout History
+
+6. Guest Management
+    Guest Records
+    Booking History
+    Guest Reviews
+
+7. Reviews & Ratings
+    Feedback Monitoring
+    Rating Overview
+
+8. Messages & Notifications
+    Inbox
+    Reservation Alerts
+    Guest Communications
+
+9. Account Settings
+    Profile Settings
+    Security Settings
+    Notification Preferences
