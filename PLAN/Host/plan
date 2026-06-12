@@ -2,6 +2,26 @@ React.js
 Flask (Python)
 Oracle Database
 
+Authentication Module
+User Registration (Sign Up)
+    Register a new host account
+    Validate email address and contact information
+    Create secure credentials
+    Store user profile information
+    Verify account registration
+
+User Authentication (Sign In)
+    Login using email and password
+    Secure password validation
+    Session management
+    Logout functionality
+
+Account Recovery
+    Forgot Password
+    Reset Password
+    Email Verification
+    Account Reactivation
+
 Host (Landlord) Module
 1. Property Management
     Create new property listings
@@ -60,99 +80,106 @@ Host (Landlord) Module
 
 Database Modules (Oracle Database)
 Core Tables
-Users
+
+USERS
     User account information
     Authentication credentials
     Account status
+    Role information
 
-Host Profiles
+HOST_PROFILES
     Host information
     Verification status
     Overall ratings
 
-Properties
+PROPERTIES
     Property details
     Pricing information
     Listing status
 
-Property Images
+PROPERTY_IMAGES
     Property photos
     Image references
 
-Amenities
+AMENITIES
     Property amenities
     Feature classifications
 
-Bookings
+PROPERTY_AMENITIES
+    Property and amenity relationships
+
+BOOKINGS
     Reservation records
     Booking status
     Check-in and check-out dates
 
-Payments
+PAYMENTS
     Payment transactions
     Revenue records
     Payout information
 
-Reviews
+REVIEWS
     Guest ratings
     Feedback and comments
 
-Messages
+MESSAGES
     Host-guest communication records
 
-Notifications
+NOTIFICATIONS
     Reservation updates
     System alerts
 
-Availability Calendar
+AVAILABILITY_CALENDAR
     Available dates
     Reserved dates
     Blocked dates
 
 Proposed Host Dashboard Sections
-1. Dashboard Overview
-    Total Properties
-    Active Bookings
-    Pending Reservations
-    Monthly Revenue
-    Recent Activities
+    1. Sign In
+    2. Sign Up
+    3. Dashboard Overview
+        Total Properties
+        Active Bookings
+        Pending Reservations
+        Monthly Revenue
+        Recent Activities
 
-2. Property Management
-    Property Listings
-    Add Property
-    Edit Property
-    Photo Management
+    4. Property Management
+        Property Listings
+        Add Property
+        Edit Property
+        Photo Management
 
-3. Booking Management
-    Reservation Requests
-    Active Bookings
-    Booking History
+    5. Booking Management
+        Reservation Requests
+        Active Bookings
+        Booking History
 
-4. Availability Calendar
-    Calendar View
-    Blocked Dates
-    Reservation Schedule
+    6. Availability Calendar
+        Calendar View
+        Blocked Dates
+        Reservation Schedule
 
-5. Revenue & Earnings
-    Revenue Summary
-    Earnings Reports
-    Payout History
+    7. Revenue & Earnings
+        Revenue Summary
+        Earnings Reports
+        Payout History
 
-6. Guest Management
-    Guest Records
-    Booking History
-    Guest Reviews
+    8. Guest Management
+        Guest Records
+        Booking History
+        Guest Reviews
 
-7. Reviews & Ratings
-    Feedback Monitoring
-    Rating Overview
+    9. Reviews & Ratings
+        Feedback Monitoring
+        Rating Overview
 
-8. Messages & Notifications
-    Inbox
-    Reservation Alerts
-    Guest Communications
+    10. Messages & Notifications
+        Inbox
+        Reservation Alerts
+        Guest Communications
 
-9. Account Settings
-    Profile Settings
-    Security Settings
-    Notification Preferences
+    11. Account Settings
+        Profile Settings
+        Security Settings
+        Notification Preferences
