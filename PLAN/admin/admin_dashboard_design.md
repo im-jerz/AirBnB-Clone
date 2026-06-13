@@ -11,11 +11,25 @@
 | **Migrations** | Alembic | SQLAlchemy-native schema versioning |
 | **State** | `st.session_state` + cached DB queries | Streamlit-native, no extra libs |
 
-**Boundary:** The admin dashboard owns only admin, booking, payment, support, and system data. Host, listing, and guest profile data lives in Carl's module — accessed via API.
+### Data Ownership
+
+| Data | Owner | Admin Access |
+|------|-------|--------------|
+| Users, Hosts, Guests | Carl (Oracle) | Fetch via API |
+| Properties/Listings | Carl (Oracle) | Fetch via API |
+| Bookings | Carl (Oracle) | Fetch via API |
+| Payments | Carl (Oracle) | Fetch via API |
+| Reviews | Carl (Oracle) | Fetch via API |
+| Payouts/Wallets | Carl (Oracle) | Fetch via API |
+| Support Tickets | **Us (PostgreSQL)** | Direct DB access |
+| Disputes | **Us (PostgreSQL)** | Direct DB access |
+| System Settings | **Us (PostgreSQL)** | Direct DB access |
+| Audit Log | **Us (PostgreSQL)** | Direct DB access |
+| Admin Accounts | **Us (PostgreSQL)** | Direct DB access |
 
 ---
 
-## 2. Admin Database Schema
+## 2. Admin Database Schema (8 tables)
 
 ### 2.1 Admin Auth & Profile (2 tables)
 
@@ -43,76 +57,15 @@ CREATE TABLE admin_profiles (
 );
 ```
 
-### 2.2 Bookings & Transactions (4 tables)
+### 2.2 Support & Disputes (2 tables)
 
 ```sql
--- 3. BOOKINGS
--- guest_external_id: Carl's guest ID (fetched via API for display)
-CREATE TABLE bookings (
-    id                  SERIAL PRIMARY KEY,
-    listing_id          VARCHAR(255) NOT NULL,          -- Carl's listing ID
-    guest_external_id   VARCHAR(255) NOT NULL,          -- Carl's guest ID
-    check_in            DATE NOT NULL,
-    check_out           DATE NOT NULL,
-    guests_count        INT DEFAULT 1,
-    total_price         DECIMAL(10,2),
-    status              VARCHAR(20) DEFAULT 'pending'
-                        CHECK (status IN ('pending','confirmed','cancelled','completed','disputed')),
-    cancellation_reason TEXT,
-    created_at          TIMESTAMPTZ DEFAULT NOW(),
-    updated_at          TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 4. PAYMENTS (PayMongo gateway)
-CREATE TABLE payments (
-    id                  SERIAL PRIMARY KEY,
-    booking_id          INT REFERENCES bookings(id),
-    payer_external_id   VARCHAR(255) NOT NULL,          -- Carl's guest ID
-    payee_external_id   VARCHAR(255) NOT NULL,          -- Carl's host ID
-    amount              DECIMAL(10,2) NOT NULL,
-    commission          DECIMAL(10,2) DEFAULT 0,
-    payment_method      VARCHAR(50),
-    status              VARCHAR(20) DEFAULT 'pending'
-                        CHECK (status IN ('pending','completed','refunded','disputed')),
-    transaction_id      VARCHAR(100),
-    paymongo_payment_id VARCHAR(255),
-    created_at          TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 5. PAYOUTS
-CREATE TABLE payouts (
-    id                  SERIAL PRIMARY KEY,
-    host_external_id    VARCHAR(255) NOT NULL,          -- Carl's host ID
-    amount              DECIMAL(10,2) NOT NULL,
-    status              VARCHAR(20) DEFAULT 'pending'
-                        CHECK (status IN ('pending','processing','completed','failed')),
-    method              VARCHAR(50),
-    processed_at        TIMESTAMPTZ,
-    created_at          TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 6. REVIEWS (one per booking, after completion)
-CREATE TABLE reviews (
-    id                      SERIAL PRIMARY KEY,
-    booking_id              INT UNIQUE REFERENCES bookings(id),
-    listing_id              VARCHAR(255) NOT NULL,      -- Carl's listing ID
-    reviewer_external_id    VARCHAR(255) NOT NULL,      -- Carl's guest ID
-    rating                  INT CHECK (rating BETWEEN 1 AND 5),
-    comment                 TEXT,
-    response                TEXT,
-    is_visible              BOOLEAN DEFAULT TRUE,
-    created_at              TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-### 2.3 Support & Disputes (2 tables)
-
-```sql
--- 7. ADMIN_SUPPORT_TICKETS
+-- 3. ADMIN_SUPPORT_TICKETS
+-- Created by client via POST /api/support/tickets or by admin manually
 CREATE TABLE admin_support_tickets (
     id                       SERIAL PRIMARY KEY,
-    submitted_by_external_id VARCHAR(255),              -- Carl's user ID
-    booking_id               INT REFERENCES bookings(id),
+    submitted_by_external_id VARCHAR(255),              -- Carl's user ID (guest or host)
+    booking_id               VARCHAR(255),              -- Carl's booking ID (external)
     subject                  VARCHAR(200) NOT NULL,
     description              TEXT,
     category                 VARCHAR(50),               -- 'booking','payment','listing','account','other'
@@ -126,11 +79,12 @@ CREATE TABLE admin_support_tickets (
     updated_at               TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 8. DISPUTES
+-- 4. DISPUTES
+-- Created when client files dispute via POST /api/disputes or auto-created from cancelled bookings
 CREATE TABLE disputes (
     id                   SERIAL PRIMARY KEY,
     ticket_id            INT REFERENCES admin_support_tickets(id),
-    booking_id           INT REFERENCES bookings(id),
+    booking_id           VARCHAR(255),                  -- Carl's booking ID (external)
     filed_by_external_id VARCHAR(255),                  -- Carl's user ID
     reason               VARCHAR(50),                   -- 'cancellation','damage','no_show','other'
     description          TEXT,
@@ -145,10 +99,11 @@ CREATE TABLE disputes (
 );
 ```
 
-### 2.4 System & Security (3 tables)
+### 2.3 System & Security (4 tables)
 
 ```sql
--- 9. SYSTEM_SETTINGS (platform config + external API keys)
+-- 5. SYSTEM_SETTINGS (platform config + external API keys)
+-- Includes: carl_api_base_url, carl_api_key, platform_name, support_email, etc.
 CREATE TABLE system_settings (
     id                   SERIAL PRIMARY KEY,
     key                  VARCHAR(100) UNIQUE NOT NULL,
@@ -158,19 +113,19 @@ CREATE TABLE system_settings (
     updated_at           TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 10. AUDIT_LOG (admin action tracking)
+-- 6. AUDIT_LOG (admin action tracking)
 CREATE TABLE audit_log (
     id          SERIAL PRIMARY KEY,
     admin_id    INT REFERENCES admin_accounts(id),
     action      VARCHAR(100) NOT NULL,
-    target_type VARCHAR(50),                           -- 'admin','booking','payment','setting'
+    target_type VARCHAR(50),                           -- 'admin','setting','support_ticket','dispute'
     target_id   INT,
     details     JSONB,
     ip_address  INET,
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 11. OTP_VERIFICATIONS (admin-only: login, password reset, admin invite)
+-- 7. OTP_VERIFICATIONS (admin-only: login, password reset, admin invite)
 CREATE TABLE otp_verifications (
     id          SERIAL PRIMARY KEY,
     email       VARCHAR(255) NOT NULL,
@@ -180,23 +135,21 @@ CREATE TABLE otp_verifications (
     verified_at TIMESTAMPTZ,
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- 8. ACCOUNT_VERIFICATIONS (admin identity verification - KYC)
+CREATE TABLE account_verifications (
+    id                   SERIAL PRIMARY KEY,
+    admin_id             INT REFERENCES admin_accounts(id),
+    doc_type             VARCHAR(50),                   -- 'passport','drivers_license','national_id'
+    doc_url              TEXT,
+    status               VARCHAR(20) DEFAULT 'pending'
+                         CHECK (status IN ('pending','approved','rejected')),
+    reviewed_by_admin_id INT REFERENCES admin_accounts(id),
+    notes                TEXT,
+    created_at           TIMESTAMPTZ DEFAULT NOW(),
+    reviewed_at          TIMESTAMPTZ
+);
 ```
-
-### 2.5 External ID Reference Pattern
-
-All guest, host, and listing references use external IDs from Carl's service.
-
-| Field | References | Source |
-|-------|------------|--------|
-| `guest_external_id` | Guest user ID | Carl's guest service |
-| `host_external_id` | Host user ID | Carl's host service |
-| `listing_id` | Listing ID | Carl's listing service |
-| `reviewer_external_id` | Guest user ID | Carl's guest service |
-| `filed_by_external_id` | User ID (guest/host) | Carl's service |
-| `payer_external_id` | Guest user ID | Carl's guest service |
-| `payee_external_id` | Host user ID | Carl's host service |
-
-Guest/host/listing details (name, email, etc.) are fetched via Carl's API at runtime — no local storage.
 
 ---
 
@@ -204,51 +157,158 @@ Guest/host/listing details (name, email, etc.) are fetched via Carl's API at run
 
 API config stored in `system_settings` (`carl_api_base_url`, `carl_api_key`).
 
-### Host Endpoints
+### 3.1 Host Endpoints
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/api/admin/hosts?email={email}` | GET | Get host details |
+| `/api/admin/hosts` | GET | Get all hosts (paginated) |
+| `/api/admin/hosts?email={email}` | GET | Get host by email |
 | `/api/admin/hosts/{external_id}` | GET | Get single host |
 | `/api/admin/hosts/{external_id}/listings` | GET | Get host's listings |
+| `/api/admin/hosts/{external_id}/wallet` | GET | Get host wallet balance |
+| `/api/admin/hosts/{external_id}/withdrawals` | GET | Get host withdrawal history |
 
-### Listing Endpoints
+### 3.2 Listing Endpoints
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/api/admin/listings?status={status}` | GET | Get paginated listings |
+| `/api/admin/listings` | GET | Get all listings (paginated) |
+| `/api/admin/listings?status={status}` | GET | Get listings by status |
 | `/api/admin/listings/{id}` | GET | Get listing details |
 | `/api/admin/listings/{id}/approve` | POST | Approve listing |
 | `/api/admin/listings/{id}/reject` | POST | Reject listing (with reason) |
 | `/api/admin/listings/{id}/suspend` | POST | Suspend listing |
 
-### Guest Endpoints
+### 3.3 Guest Endpoints
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/api/admin/guests?email={email}` | GET | Get guest profile |
+| `/api/admin/guests` | GET | Get all guests (paginated) |
+| `/api/admin/guests?email={email}` | GET | Get guest by email |
 | `/api/admin/guests/{external_id}` | GET | Get single guest |
+| `/api/admin/guests/{external_id}/bookings` | GET | Get guest's bookings |
 
-Wrapper functions in `services/external_api.py` call these endpoints.
+### 3.4 Booking Endpoints (Read-only for admin)
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/admin/bookings` | GET | Get all bookings (paginated) |
+| `/api/admin/bookings?status={status}` | GET | Get bookings by status |
+| `/api/admin/bookings/{id}` | GET | Get booking details |
+| `/api/admin/bookings/{id}/timeline` | GET | Get booking status timeline |
+
+### 3.5 Payment Endpoints (Read-only for admin)
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/admin/payments` | GET | Get all payments (paginated) |
+| `/api/admin/payments?booking_id={id}` | GET | Get payment by booking |
+| `/api/admin/payments/{id}` | GET | Get payment details |
+
+### 3.6 Review Endpoints (Read + Moderate)
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/admin/reviews` | GET | Get all reviews (paginated) |
+| `/api/admin/reviews?listing_id={id}` | GET | Get reviews by listing |
+| `/api/admin/reviews/{id}` | GET | Get review details |
+| `/api/admin/reviews/{id}/hide` | POST | Hide review (set is_visible=false) |
+| `/api/admin/reviews/{id}/show` | POST | Show review (set is_visible=true) |
+
+### 3.7 Payout Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/admin/withdrawals` | GET | Get all withdrawal requests |
+| `/api/admin/withdrawals?status={status}` | GET | Get withdrawals by status |
+| `/api/admin/withdrawals/{id}/approve` | POST | Approve withdrawal |
+| `/api/admin/withdrawals/{id}/reject` | POST | Reject withdrawal (with reason) |
+
+### 3.8 Message Endpoints (For dispute investigation)
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/admin/messages?booking_id={id}` | GET | Get messages for a booking |
+| `/api/admin/messages?host_id={id}` | GET | Get host's messages |
+| `/api/admin/messages?guest_id={id}` | GET | Get guest's messages |
+
+### 3.9 Stats Endpoint
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/admin/stats` | GET | Dashboard KPIs (total bookings, revenue, active listings, etc.) |
+| `/api/admin/stats/revenue?period={period}` | GET | Revenue by period (daily/weekly/monthly) |
+| `/api/admin/stats/bookings?period={period}` | GET | Booking stats by period |
+
+**Wrapper functions** in `services/external_api.py` call these endpoints.
 
 ---
 
 ## 4. Pages Overview
 
-| Page | Purpose | Data Source |
-|------|---------|-------------|
-| 1. Dashboard Overview | KPIs, charts, alerts, activity feed | DB + API |
-| 2. Host & Guest Management | View/manage hosts and guests | Carl's API |
-| 3. Listings Management | Approve/reject/suspend listings | Carl's API |
-| 4. Booking Management | Calendar, bookings, cancellations | DB |
-| 5. Payments & Commissions | Revenue, payouts, disputes | DB |
-| 6. Analytics & Reports | Charts, trends, downloadable reports | DB + API |
-| 7. Support & Disputes | Tickets, disputes, resolution | DB |
-| 8. System Settings | Config, fees, external API setup | DB |
+| Page | Purpose | Data Source | Actions |
+|------|---------|-------------|---------|
+| 1. Dashboard Overview | KPIs, charts, alerts | Carl's API (`/stats`) | View only |
+| 2. Host & Guest Management | View hosts and guests | Carl's API | View, suspend (via API) |
+| 3. Listings Management | Moderate listings | Carl's API | Approve, reject, suspend |
+| 4. Booking Management | View bookings, handle disputes | Carl's API + Local DB | View, file disputes |
+| 5. Payments & Commissions | Revenue, payouts | Carl's API | View, approve/reject withdrawals |
+| 6. Analytics & Reports | Charts, trends | Carl's API + Local DB | Export |
+| 7. Support & Disputes | Tickets, disputes | Local DB | Create, assign, resolve |
+| 8. System Settings | Config, API setup | Local DB | Edit |
 
 ---
 
-## 5. Security & Auth
+## 5. Data Flow Diagrams
+
+### 5.1 Booking Flow
+```
+Client → Carl's API (POST /api/bookings) → Carl's Oracle DB
+    ↓
+Admin ← Carl's API (GET /api/admin/bookings) ← Carl's Oracle DB
+    ↓
+Admin views bookings in dashboard (read-only)
+```
+
+### 5.2 Payment Flow
+```
+Client → PayMongo → Carl's webhook → Carl's Oracle DB
+    ↓
+Admin ← Carl's API (GET /api/admin/payments) ← Carl's Oracle DB
+    ↓
+Admin views payments, tracks commissions (read-only)
+```
+
+### 5.3 Support Ticket Flow
+```
+Client → Our API (POST /api/support/tickets) → Our PostgreSQL
+    ↓
+Admin ← Direct DB query → admin_support_tickets table
+    ↓
+Admin assigns, resolves tickets (full CRUD)
+```
+
+### 5.4 Dispute Flow
+```
+Client → Our API (POST /api/disputes) → Our PostgreSQL
+    ↓ (or auto-created from cancelled booking)
+Admin views disputes, investigates via Carl's messages API
+    ↓
+Admin resolves dispute → updates status + resolution
+```
+
+### 5.5 Payout Flow
+```
+Host → Carl's API (POST /api/withdrawals) → Carl's Oracle DB
+    ↓
+Admin ← Carl's API (GET /api/admin/withdrawals) ← Carl's Oracle DB
+    ↓
+Admin approves/rejects → Carl's API (POST /api/admin/withdrawals/{id}/approve)
+```
+
+---
+
+## 6. Security & Auth
 
 | Category | Implementation |
 |----------|----------------|
@@ -272,19 +332,19 @@ Wrapper functions in `services/external_api.py` call these endpoints.
 
 ---
 
-## 6. Implementation Plan
+## 7. Implementation Plan
 
 | Phase | Scope |
 |-------|-------|
-| 1 | Project scaffold, DB connection, models, Alembic migrations |
+| 1 | Project scaffold, DB connection, 8 models, Alembic migrations |
 | 2 | Auth system, sidebar, page routing |
-| 3 | Dashboard Overview (KPIs, charts) |
-| 4 | Host & Guest Management (via API) |
-| 5 | Listings Management (via API) |
-| 6 | Booking Management |
-| 7 | Payments & Commissions |
-| 8 | Analytics & Reports |
-| 9 | Support & Disputes |
+| 3 | External API client (`external_api.py`) — all Carl endpoints |
+| 4 | Dashboard Overview (KPIs via `/api/admin/stats`) |
+| 5 | Host & Guest Management (via API) |
+| 6 | Listings Management (via API — approve/reject/suspend) |
+| 7 | Booking Management (via API + local disputes) |
+| 8 | Payments & Commissions (via API + withdrawal approval) |
+| 9 | Support & Disputes (local CRUD) |
 | 10 | System Settings + External API config |
 
 ### Key Dependencies
@@ -302,3 +362,43 @@ pydantic>=2.5
 bcrypt>=4.1
 requests>=2.31
 ```
+
+---
+
+## 8. Booking Status Reference (Carl's System)
+
+Admin needs to understand these statuses when viewing bookings via API:
+
+| Status | Description | Who Sets It |
+|--------|-------------|-------------|
+| `pending` | Awaiting host confirmation | System (on booking creation) |
+| `confirmed` | Host accepted / instant book | Host or System |
+| `in_progress` | Guest is currently staying | System (auto, based on dates) |
+| `completed` | Check-out date passed | System (auto) |
+| `reviewed` | Guest left a review | System (after review submitted) |
+| `cancelled` | Cancelled by guest or host | Guest or Host |
+| `declined` | Host rejected booking | Host |
+| `disputed` | Dispute filed | Admin or Guest |
+
+---
+
+## 9. Support Ticket Categories
+
+| Category | Description |
+|----------|-------------|
+| `booking` | Issues related to bookings (cancellation, dates, etc.) |
+| `payment` | Payment issues (failed payment, refund, etc.) |
+| `listing` | Listing issues (inaccurate info, photos, etc.) |
+| `account` | Account issues (login, verification, etc.) |
+| `other` | General support |
+
+---
+
+## 10. Dispute Reasons
+
+| Reason | Description |
+|--------|-------------|
+| `cancellation` | Dispute over cancellation/refund |
+| `damage` | Property damage claim |
+| `no_show` | Guest or host didn't show up |
+| `other` | Other reasons |
