@@ -48,7 +48,9 @@ Redirect to Dashboard
 ## 3. Account Verification Flow
 
 ```
-Host/Guest signs up → Submits verification documents (ID, selfie, etc.)
+Host/Guest signs up (basic info only)
+       ↓
+User goes to Profile → Submits verification documents (ID, selfie, etc.)
        ↓
 Admin reviews verification request
        ↓
