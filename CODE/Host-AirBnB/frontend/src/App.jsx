@@ -4,6 +4,11 @@ import SignUp from './pages/auth/SignUp'
 import VerifyEmail from './pages/auth/VerifyEmail'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
+import { ToastProvider } from './components/common/Toast'
+import DashboardLayout from './components/layout/DashboardLayout'
+import DashboardHome from './pages/DashboardHome'
+import PropertyManagement from './pages/properties/PropertyManagement'
+import AddEditProperty from './pages/properties/AddEditProperty'
 
 /**
  * Maps the `onNavigate(page, params)` calls used inside the auth pages
@@ -37,21 +42,13 @@ function AuthRoutes() {
       {/* Default route */}
       <Route path="/" element={<Navigate to="/signin" replace />} />
 
-      {/* Dashboard route (protected later) */}
-      <Route path="/dashboard" element={
-        <div style={{ padding: "2rem" }}>
-          <h1>Dashboard</h1>
-          <p>This will be your protected dashboard after login</p>
-          <button onClick={() => {
-            localStorage.removeItem("access_token")
-            localStorage.removeItem("refresh_token")
-            localStorage.removeItem("host")
-            navigate("/signin")
-          }}>
-            Sign Out
-          </button>
-        </div>
-      } />
+      {/* Dashboard routes (protected later — no session gate yet per current phase) */}
+      <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route index element={<DashboardHome />} />
+        <Route path="properties" element={<PropertyManagement />} />
+        <Route path="properties/new" element={<AddEditProperty />} />
+        <Route path="properties/:id/edit" element={<AddEditProperty />} />
+      </Route>
     </Routes>
   )
 }
@@ -59,7 +56,9 @@ function AuthRoutes() {
 function App() {
   return (
     <Router>
-      <AuthRoutes />
+      <ToastProvider>
+        <AuthRoutes />
+      </ToastProvider>
     </Router>
   )
 }

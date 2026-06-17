@@ -94,7 +94,9 @@ export default function SignIn({ onNavigate }) {
 
       const host = res.data.host;
       if (host.status === "awaiting_verification") {
-        onNavigate?.("verify-email", { email: host.email });
+        setServerError(
+          "Your account is still pending admin approval. Please wait for an administrator to review your application."
+        );
         return;
       }
       // status === 'active' (or 'inactive')
