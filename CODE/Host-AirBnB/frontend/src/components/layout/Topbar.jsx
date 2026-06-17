@@ -1,6 +1,6 @@
 import { IconMenu, IconBell } from "../icons";
 
-export default function Topbar({ eyebrow, title, onMenuClick, hostInitial = "J", hostName = "Fafa Jerson Doronila" }) {
+export default function Topbar({ eyebrow, title, onMenuClick, hostInitial = "J", hostName = "Juan Dela Cruz" }) {
   return (
     <header className="topbar">
       <button type="button" className="topbar-menu-btn" onClick={onMenuClick} aria-label="Toggle navigation">

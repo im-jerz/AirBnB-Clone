@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
   IconHome,
   IconBuilding,
   IconCalendar,
   IconWallet,
   IconMenu,
+  IconX,
   IconUsers,
   IconChart,
   IconStar,
@@ -34,10 +35,18 @@ const MORE_LINKS = [
 export default function MobileTabBar() {
   const [moreOpen, setMoreOpen] = useState(false);
   const popRef = useRef(null);
+  const moreBtnRef = useRef(null);
 
   useEffect(() => {
     function onClick(e) {
-      if (popRef.current && !popRef.current.contains(e.target)) setMoreOpen(false);
+      if (
+        popRef.current &&
+        !popRef.current.contains(e.target) &&
+        moreBtnRef.current &&
+        !moreBtnRef.current.contains(e.target)
+      ) {
+        setMoreOpen(false);
+      }
     }
     if (moreOpen) document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
@@ -66,14 +75,27 @@ export default function MobileTabBar() {
             to={tab.to}
             end={tab.end}
             className={({ isActive }) => `mobile-tab${isActive ? " active" : ""}`}
+            onClick={() => setMoreOpen(false)}
           >
-            <tab.icon />
+            <span className="mobile-tab-icon">
+              <tab.icon />
+            </span>
             <span>{tab.label}</span>
           </NavLink>
         ))}
-        <button type="button" className="mobile-tab" onClick={() => setMoreOpen((v) => !v)}>
-          <IconMenu />
-          <span>More</span>
+        <button
+          ref={moreBtnRef}
+          type="button"
+          className={`mobile-tab-more-btn${moreOpen ? " open" : ""}`}
+          onClick={() => setMoreOpen((v) => !v)}
+          aria-expanded={moreOpen}
+          aria-label={moreOpen ? "Close menu" : "More options"}
+        >
+          <span className="icon-swap">
+            <IconMenu className="icon-menu" />
+            <IconX className="icon-close" />
+          </span>
+          <span>{moreOpen ? "Close" : "More"}</span>
         </button>
       </nav>
     </>
