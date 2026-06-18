@@ -23,3 +23,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Uploaded property photos (written by the Flask backend) — don't
+# commit user-uploaded binary content, but keep the folder tracked.
+src/assets/uploads/properties/*
+!src/assets/uploads/properties/.gitkeep

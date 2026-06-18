@@ -3,8 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { STEP_DEFS, emptyPropertyDraft, validateStep, validateAll } from "./propertyDraft";
 import { useToast } from "../../components/common/Toast";
 import { IconCheck, IconChevronLeft } from "../../components/icons";
-import { createProperty, updateProperty, savePropertyDraft } from "../../api/properties";
-import { MOCK_PROPERTIES } from "../../data/mockProperties";
+import { createProperty, updateProperty, savePropertyDraft, getProperty } from "../../api/properties";
 
 import StepBasics from "./steps/StepBasics";
 import StepLocation from "./steps/StepLocation";
@@ -16,24 +15,27 @@ import StepPricing from "./steps/StepPricing";
 import StepCancellation from "./steps/StepCancellation";
 import StepReview from "./steps/StepReview";
 
-const USE_MOCK = true;
+// Backend is live — see backend/app/blueprints/properties/.
+// Flip back to `true` only if you need to work on the UI without
+// a running Flask server.
+const USE_MOCK = false;
 
 function draftFromExisting(property) {
   const draft = emptyPropertyDraft();
   draft.basics = {
     property_type: property.property_type,
     title: property.title,
-    description: property.description || "A wonderful place to stay, full of charm and comfort.",
+    description: property.description || "",
     category: property.category,
   };
   draft.location = {
-    street: property.address.street || "123 Sample Street",
-    city: property.address.city,
-    province: property.address.province,
-    zip_code: property.address.zip_code || "0000",
-    country: "Philippines",
-    lat: 0.5,
-    lng: 0.5,
+    street: property.address.street || "",
+    city: property.address.city || "",
+    province: property.address.province || "",
+    zip_code: property.address.zip_code || "",
+    country: property.address.country || "Philippines",
+    lat: property.address.lat ?? null,
+    lng: property.address.lng ?? null,
   };
   draft.capacity = {
     max_guests: property.max_guests,
@@ -41,16 +43,31 @@ function draftFromExisting(property) {
     beds: property.beds,
     bathrooms: property.bathrooms,
   };
+  draft.amenities = {
+    selected: property.amenities?.selected || [],
+    custom: property.amenities?.custom || [],
+  };
+  draft.rules = {
+    checkin_time: property.rules?.checkin_time || "14:00",
+    checkout_time: property.rules?.checkout_time || "11:00",
+    smoking: property.rules?.smoking || false,
+    pets: property.rules?.pets || false,
+    parties: property.rules?.parties || false,
+    additional: property.rules?.additional || "",
+  };
   draft.photos = {
-    files: [{ id: "existing-cover", url: property.cover_photo, name: "cover.jpg" }],
-    coverId: "existing-cover",
+    files: (property.photos || []).map((p) => ({ id: String(p.id), url: p.url, name: `photo-${p.id}.jpg` })),
+    coverId: (() => {
+      const cover = (property.photos || []).find((p) => p.is_cover);
+      return cover ? String(cover.id) : property.photos?.[0] ? String(property.photos[0].id) : null;
+    })(),
   };
   draft.pricing = {
-    base_price: String(property.base_price),
-    cleaning_fee: String(property.cleaning_fee || ""),
-    weekend_price: "",
-    min_nights: 1,
-    max_nights: 30,
+    base_price: String(property.base_price ?? ""),
+    cleaning_fee: String(property.cleaning_fee ?? ""),
+    weekend_price: property.rules?.weekend_price ? String(property.rules.weekend_price) : "",
+    min_nights: property.min_nights ?? 1,
+    max_nights: property.max_nights ?? 30,
   };
   draft.cancellation = { policy: property.cancellation_policy };
   return draft;
@@ -68,15 +85,34 @@ export default function AddEditProperty() {
   const [touchedSteps, setTouchedSteps] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [loadingExisting, setLoadingExisting] = useState(isEdit);
   const autosaveTimer = useRef(null);
 
   // Pre-fill on edit
   useEffect(() => {
-    if (isEdit) {
-      const existing = MOCK_PROPERTIES.find((p) => String(p.property_id) === String(id));
-      if (existing) setDraft(draftFromExisting(existing));
+    if (!isEdit) return;
+    let cancelled = false;
+
+    async function loadExisting() {
+      setLoadingExisting(true);
+      try {
+        const res = await getProperty(id);
+        if (!cancelled) setDraft(draftFromExisting(res.data.property));
+      } catch (err) {
+        if (!cancelled) {
+          push(err.response?.data?.message || "Couldn't load this property.", "error");
+          navigate("/dashboard/properties");
+        }
+      } finally {
+        if (!cancelled) setLoadingExisting(false);
+      }
     }
-  }, [isEdit, id]);
+
+    loadExisting();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEdit, id, navigate, push]);
 
   // Auto-save draft every 30s (per spec: "Draft saved" toast)
   useEffect(() => {
@@ -194,6 +230,14 @@ export default function AddEditProperty() {
       default:
         return null;
     }
+  }
+
+  if (loadingExisting) {
+    return (
+      <div className="builder-panel" style={{ textAlign: "center", padding: "var(--space-16) var(--space-6)" }}>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: "var(--text-sm)" }}>Loading property details…</p>
+      </div>
+    );
   }
 
   return (

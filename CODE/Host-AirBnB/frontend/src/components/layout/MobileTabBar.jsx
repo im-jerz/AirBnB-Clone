@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { logout } from "../../api/auth";
 import {
   IconHome,
   IconBuilding,
@@ -36,6 +37,13 @@ export default function MobileTabBar() {
   const [moreOpen, setMoreOpen] = useState(false);
   const popRef = useRef(null);
   const moreBtnRef = useRef(null);
+  const navigate = useNavigate();
+
+  async function handleSignOut() {
+    setMoreOpen(false);
+    await logout();
+    navigate("/signin", { replace: true });
+  }
 
   useEffect(() => {
     function onClick(e) {
@@ -62,10 +70,10 @@ export default function MobileTabBar() {
               {item.label}
             </NavLink>
           ))}
-          <NavLink to="/signin" className="mobile-more-link">
+          <button type="button" className="mobile-more-link" onClick={handleSignOut} style={{ width: "100%", textAlign: "left" }}>
             <IconPower />
             Sign out
-          </NavLink>
+          </button>
         </div>
       )}
       <nav className="mobile-tabbar">

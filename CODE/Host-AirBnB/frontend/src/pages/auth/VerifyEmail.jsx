@@ -175,7 +175,7 @@ export default function VerifyEmail({ onNavigate, email = "you@example.com" }) {
           {/* Icon */}
           <div style={{
             width: 64, height: 64, borderRadius: "var(--radius-lg)",
-            background: "rgba(28, 58, 47, 0.06)",
+            background: "rgba(27, 42, 74, 0.06)",
             display: "flex", alignItems: "center", justifyContent: "center",
             marginBottom: "var(--space-6)"
           }}>

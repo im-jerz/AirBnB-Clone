@@ -8,6 +8,7 @@ import {
   IconTrash,
 } from "../icons";
 import { PROPERTY_TYPE_LABEL, STATUS_LABEL } from "../../data/mockProperties";
+import { resolveMediaUrl } from "../../api/properties";
 
 function formatPHP(n) {
   return `₱${Number(n).toLocaleString("en-PH")}`;
@@ -21,7 +22,7 @@ export default function PropertyCard({ property, onToggleStatus, onDelete }) {
   return (
     <article className="property-card">
       <div className="property-card-media">
-        <img src={p.cover_photo} alt={p.title} loading="lazy" />
+        <img src={resolveMediaUrl(p.cover_photo)} alt={p.title} loading="lazy" />
         <span className={`status-pill ${p.status}`}>{STATUS_LABEL[p.status]}</span>
         {p.rating_avg ? (
           <span className="property-card-rating">

@@ -160,14 +160,18 @@ export const STATUS_LABEL = {
   suspended: "Suspended",
 };
 
+// Keys here are sent verbatim to the backend and matched against the
+// AMENITIES table seeded by host_database_schema.sql — keep these in
+// sync with that seed list (see "SEED DATA — AMENITIES" section).
 export const AMENITIES_CATALOG = [
-  { key: "wifi", label: "Wi-Fi", icon: "IconWifi" },
-  { key: "kitchen", label: "Kitchen", icon: "IconKitchen" },
-  { key: "aircon", label: "Air conditioning", icon: "IconSnowflake" },
-  { key: "pool", label: "Pool", icon: "IconWaves" },
-  { key: "parking", label: "Free parking", icon: "IconCar" },
-  { key: "washer", label: "Washer", icon: "IconWasher" },
-  { key: "tv", label: "TV", icon: "IconTv" },
-  { key: "heating", label: "Heating", icon: "IconFlame" },
-  { key: "security", label: "24/7 Security", icon: "IconShield" },
+  { key: "WiFi", label: "WiFi", icon: "IconWifi" },
+  { key: "Kitchen", label: "Kitchen", icon: "IconKitchen" },
+  { key: "Air Conditioning", label: "Air Conditioning", icon: "IconSnowflake" },
+  { key: "Swimming Pool", label: "Swimming Pool", icon: "IconWaves" },
+  { key: "Free Parking", label: "Free Parking", icon: "IconCar" },
+  { key: "Washer", label: "Washer", icon: "IconWasher" },
+  { key: "TV", label: "TV", icon: "IconTv" },
+  { key: "Hot Water", label: "Hot Water", icon: "IconFlame" },
+  { key: "Workspace", label: "Workspace", icon: "IconDesk" },
+  { key: "Pet Friendly", label: "Pet Friendly", icon: "IconPaw" },
 ];

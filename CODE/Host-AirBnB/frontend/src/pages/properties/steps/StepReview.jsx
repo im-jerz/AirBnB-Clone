@@ -1,4 +1,5 @@
 import { PROPERTY_TYPE_LABEL } from "../../../data/mockProperties";
+import { resolveMediaUrl } from "../../../api/properties";
 
 const PROPERTY_TYPE_LABELS = {
   ...PROPERTY_TYPE_LABEL,
@@ -17,7 +18,7 @@ export default function StepReview({ draft, onEditStep }) {
 
       {coverPhoto && (
         <div style={{ marginBottom: "var(--space-5)", borderRadius: "var(--radius-md)", overflow: "hidden", aspectRatio: "16/7" }}>
-          <img src={coverPhoto.url} alt="Cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img src={resolveMediaUrl(coverPhoto.url)} alt="Cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       )}
 

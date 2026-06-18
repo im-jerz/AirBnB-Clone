@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { IconUpload, IconTrash, IconAlertCircle } from "../../../components/icons";
+import { resolveMediaUrl } from "../../../api/properties";
 
 const MAX_PHOTOS = 20;
 const MIN_PHOTOS = 5;
@@ -77,7 +78,7 @@ export default function StepPhotos({ data, errors, onChange }) {
             onDragOver={(e) => onDragOver(e, idx)}
             onDragEnd={() => setDragIdx(null)}
           >
-            <img src={f.url} alt={f.name} />
+            <img src={resolveMediaUrl(f.url)} alt={f.name} />
             {data.coverId === f.id && <span className="photo-tile-cover-badge">Cover</span>}
             <button type="button" className="photo-tile-remove" onClick={() => removePhoto(f.id)} aria-label="Remove photo">
               <IconTrash width={14} height={14} />

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
+import { logout } from "../../api/auth";
 import {
   IconHome,
   IconBuilding,
@@ -53,6 +54,13 @@ const NAV_SECTIONS = [
 ];
 
 export default function Sidebar({ expanded, onToggle }) {
+  const navigate = useNavigate();
+
+  async function handleSignOut() {
+    await logout();
+    navigate("/signin", { replace: true });
+  }
+
   return (
     <aside className={`shell-sidebar ${expanded ? "expanded" : "collapsed"}`}>
       <div className="sidebar-brand">
@@ -89,10 +97,10 @@ export default function Sidebar({ expanded, onToggle }) {
       </button>
 
       <div className="sidebar-footer">
-        <NavLink to="/signin" className="sidebar-link">
+        <button type="button" className="sidebar-link" onClick={handleSignOut} style={{ width: "100%" }}>
           <IconPower />
           <span className="sidebar-link-label">Sign out</span>
-        </NavLink>
+        </button>
       </div>
     </aside>
   );

@@ -40,8 +40,13 @@ class Config:
     MAX_LOGIN_ATTEMPTS = 5
     LOGIN_LOCKOUT_MINUTES = 15
 
-    # ─── KYC document uploads ──────────────────────────────────────
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB
+    # ─── Upload size caps ────────────────────────────────────────
+    # MAX_CONTENT_LENGTH caps the *whole* request body, not a single
+    # file. KYC registration sends 2 documents; adding a property can
+    # send up to 20 photos (5MB each, validated per-file in
+    # properties/routes.py) — so the global cap has to cover the
+    # worst case of a full photo batch, not just the KYC flow.
+    MAX_CONTENT_LENGTH = 110 * 1024 * 1024  # 110 MB
     ALLOWED_DOCUMENT_EXTENSIONS = {"jpg", "jpeg", "png", "pdf"}
 
     # ─── Cloud storage (placeholders for upload_service.py) ─────────

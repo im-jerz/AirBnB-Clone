@@ -589,13 +589,13 @@
 .filter-tab-count {
   font-size: 0.6875rem;
   font-weight: 700;
-  background: rgba(28,58,47,0.08);
+  background: rgba(27,42,74,0.08);
   color: var(--color-text-muted);
   padding: 1px 6px;
   border-radius: var(--radius-full);
 }
 
-.filter-tab.active .filter-tab-count { background: rgba(28,58,47,0.1); color: var(--color-primary); }
+.filter-tab.active .filter-tab-count { background: rgba(27,42,74,0.1); color: var(--color-primary); }
 
 .toolbar-row {
   display: flex;
@@ -1058,7 +1058,7 @@
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: white;
-  box-shadow: 0 0 0 4px rgba(28,58,47,0.12);
+  box-shadow: 0 0 0 4px rgba(27,42,74,0.12);
 }
 
 .builder-step-btn.done .builder-step-circle {
@@ -1143,7 +1143,7 @@
 .builder-textarea:focus {
   outline: none;
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(28, 58, 47, 0.10);
+  box-shadow: 0 0 0 3px rgba(27,42,74, 0.10);
 }
 
 .char-counter {
@@ -1177,7 +1177,7 @@
 
 .option-card.selected {
   border-color: var(--color-primary);
-  background: rgba(28,58,47,0.04);
+  background: rgba(27,42,74,0.04);
 }
 
 .option-card-icon {
@@ -1228,9 +1228,9 @@
   height: 220px;
   border-radius: var(--radius-md);
   background:
-    linear-gradient(rgba(28,58,47,0.05), rgba(28,58,47,0.05)),
-    repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(28,58,47,0.06) 27px, rgba(28,58,47,0.06) 28px),
-    repeating-linear-gradient(90deg, transparent, transparent 27px, rgba(28,58,47,0.06) 27px, rgba(28,58,47,0.06) 28px),
+    linear-gradient(rgba(27,42,74,0.05), rgba(27,42,74,0.05)),
+    repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(27,42,74,0.06) 27px, rgba(27,42,74,0.06) 28px),
+    repeating-linear-gradient(90deg, transparent, transparent 27px, rgba(27,42,74,0.06) 27px, rgba(27,42,74,0.06) 28px),
     var(--color-surface-alt);
   border: 1.5px solid var(--color-border);
   display: flex;
@@ -1301,7 +1301,7 @@
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.counter-btn:hover:not(:disabled) { border-color: var(--color-primary); background: rgba(28,58,47,0.04); }
+.counter-btn:hover:not(:disabled) { border-color: var(--color-primary); background: rgba(27,42,74,0.04); }
 .counter-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .counter-value {
@@ -1338,7 +1338,7 @@
 
 .amenity-chip.selected {
   border-color: var(--color-primary);
-  background: rgba(28,58,47,0.05);
+  background: rgba(27,42,74,0.05);
   color: var(--color-primary);
 }
 
@@ -1492,7 +1492,7 @@
   padding: var(--space-3);
 }
 
-.photo-upload-tile:hover { border-color: var(--color-primary); background: rgba(28,58,47,0.03); color: var(--color-primary); }
+.photo-upload-tile:hover { border-color: var(--color-primary); background: rgba(27,42,74,0.03); color: var(--color-primary); }
 
 /* Pricing Step */
 .price-input-wrap { position: relative; }
@@ -1549,7 +1549,7 @@
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.policy-card.selected { border-color: var(--color-primary); background: rgba(28,58,47,0.04); }
+.policy-card.selected { border-color: var(--color-primary); background: rgba(27,42,74,0.04); }
 
 .policy-card-head {
   display: flex;

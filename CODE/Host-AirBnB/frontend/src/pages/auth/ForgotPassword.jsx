@@ -83,7 +83,7 @@ export default function ForgotPassword({ onNavigate }) {
           <div className="auth-form-body" style={{ textAlign: "center" }}>
             <div style={{
               width: 72, height: 72, borderRadius: "var(--radius-xl)",
-              background: "rgba(28,58,47,0.06)",
+              background: "rgba(27,42,74,0.06)",
               display: "flex", alignItems: "center", justifyContent: "center",
               margin: "0 auto var(--space-6)"
             }}>

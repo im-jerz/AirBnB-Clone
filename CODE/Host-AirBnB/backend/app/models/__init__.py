@@ -5,6 +5,15 @@ from app.models.host import (
     OtpVerification,
     PayoutAccount,
 )
+from app.models.property import (
+    Property,
+    PropertyLocation,
+    PropertyRule,
+    Amenity,
+    PropertyAmenity,
+    PropertyImage,
+    AvailabilityCalendar,
+)
 
 __all__ = [
     "Host",
@@ -12,4 +21,11 @@ __all__ = [
     "HostKycDocument",
     "OtpVerification",
     "PayoutAccount",
+    "Property",
+    "PropertyLocation",
+    "PropertyRule",
+    "Amenity",
+    "PropertyAmenity",
+    "PropertyImage",
+    "AvailabilityCalendar",
 ]

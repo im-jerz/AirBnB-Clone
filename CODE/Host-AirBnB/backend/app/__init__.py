@@ -7,12 +7,13 @@ Usage (see wsgi.py):
     app = create_app("development")
 """
 
-from flask import Flask
+from flask import Flask, send_from_directory
 
 from config import config_by_name
 from app.extensions import db, migrate, bcrypt, jwt, ma, cors, mail
 from app.blueprints import register_blueprints
 from app.utils.response import error_response
+from app.services.upload_service import PROPERTY_UPLOAD_ROOT
 
 
 def create_app(config_name: str = "development") -> Flask:
@@ -30,6 +31,17 @@ def create_app(config_name: str = "development") -> Flask:
 
     # ─── Blueprints ──────────────────────────────────────────────
     register_blueprints(app)
+
+    # ─── Static file serving for uploaded property photos ─────────
+    # Physical files live under frontend/src/assets/uploads/properties/
+    # (per project requirements) — Flask serves them back out so the
+    # frontend's <img src="..."> tags resolve regardless of which dev
+    # server is hit. Swap for Cloudinary/S3 URLs in production and
+    # this route becomes unnecessary.
+    @app.route("/uploads/properties/<path:filepath>")
+    def uploaded_property_photo(filepath):
+        directory = f"{PROPERTY_UPLOAD_ROOT}/properties"
+        return send_from_directory(directory, filepath)
 
     # ─── JWT blocklist (logout support) ───────────────────────────
     @jwt.token_in_blocklist_loader
@@ -57,6 +69,12 @@ def create_app(config_name: str = "development") -> Flask:
     @app.errorhandler(404)
     def not_found(e):
         return error_response("Resource not found.", status=404)
+
+    @app.errorhandler(413)
+    def payload_too_large(e):
+        return error_response(
+            "Upload too large. Check individual file sizes and try again.", status=413
+        )
 
     @app.errorhandler(500)
     def server_error(e):

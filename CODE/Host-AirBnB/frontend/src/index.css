@@ -2,10 +2,12 @@
 
 /* ─── Design Tokens ─────────────────────────────────────────── */
 :root {
-  /* Brand Colors */
-  --color-primary:       #1C3A2F;
-  --color-primary-hover: #152E25;
-  --color-primary-light: #2D5A46;
+  /* Brand Colors — navy + antique gold (swapped from the original
+     forest-green palette; gold accent kept since navy+gold is a
+     proven, premium hospitality pairing) */
+  --color-primary:       #1B2A4A;
+  --color-primary-hover: #142038;
+  --color-primary-light: #2F4470;
   --color-accent:        #C9A84C;
   --color-accent-hover:  #B8962F;
 
@@ -13,14 +15,14 @@
   --color-bg:            #F7F4EF;
   --color-surface:       #FFFFFF;
   --color-surface-alt:   #F0EDE7;
-  --color-panel:         #1C3A2F;
+  --color-panel:         #1B2A4A;
 
   /* Text */
   --color-text-primary:  #111827;
   --color-text-secondary:#4B5563;
   --color-text-muted:    #9CA3AF;
   --color-text-inverse:  #F7F4EF;
-  --color-text-on-panel: #E8E3D8;
+  --color-text-on-panel: #E3E7F0;
 
   /* States */
   --color-error:         #DC2626;
@@ -28,7 +30,7 @@
   --color-success:       #16A34A;
   --color-success-light: #F0FDF4;
   --color-border:        #E5E0D8;
-  --color-border-focus:  #1C3A2F;
+  --color-border-focus:  #1B2A4A;
 
   /* Typography */
   --font-heading: 'Plus Jakarta Sans', sans-serif;
@@ -278,7 +280,7 @@ ul, ol { list-style: none; }
 .form-input:focus {
   outline: none;
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(28, 58, 47, 0.10);
+  box-shadow: 0 0 0 3px rgba(27,42,74, 0.10);
 }
 
 .form-input.has-error {
@@ -503,12 +505,12 @@ ul, ol { list-style: none; }
 .otp-cell:focus {
   outline: none;
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(28, 58, 47, 0.10);
+  box-shadow: 0 0 0 3px rgba(27,42,74, 0.10);
 }
 
 .otp-cell.filled {
   border-color: var(--color-primary);
-  background: rgba(28, 58, 47, 0.04);
+  background: rgba(27,42,74, 0.04);
 }
 
 .otp-cell.has-error {
@@ -738,12 +740,12 @@ ul, ol { list-style: none; }
 
 .upload-zone:hover {
   border-color: var(--color-primary);
-  background: rgba(28, 58, 47, 0.03);
+  background: rgba(27,42,74, 0.03);
 }
 
 .upload-zone-active {
   border-color: var(--color-primary);
-  background: rgba(28, 58, 47, 0.05);
+  background: rgba(27,42,74, 0.05);
 }
 
 .upload-zone-label {

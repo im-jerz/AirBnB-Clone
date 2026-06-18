@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { getProperties, togglePropertyStatus as apiToggleStatus } from "../../api/properties";
+import {
+  getProperties,
+  togglePropertyStatus as apiToggleStatus,
+  deleteProperty as apiDeleteProperty,
+} from "../../api/properties";
 import { MOCK_PROPERTIES } from "../../data/mockProperties";
 
-// Flip this to `false` once the Flask backend endpoints in
-// host_dashboard_design.md §4 are live and reachable.
-const USE_MOCK = true;
+// Backend is live — see backend/app/blueprints/properties/.
+// Flip back to `true` only if you need to work on the UI without
+// a running Flask server.
+const USE_MOCK = false;
 
 export default function usePropertiesData() {
   const [properties, setProperties] = useState([]);
@@ -55,9 +60,7 @@ export default function usePropertiesData() {
       setProperties((list) => list.filter((p) => p.property_id !== property.property_id));
       return;
     }
-    // DELETE not in current API contract — backend exposes status toggle only.
-    // Soft-delete via status update is the documented path; left as TODO
-    // pending confirmation of a hard-delete endpoint.
+    await apiDeleteProperty(property.property_id);
     setProperties((list) => list.filter((p) => p.property_id !== property.property_id));
   }, []);
 
