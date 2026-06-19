@@ -8,12 +8,24 @@ from services.auth_service import (
     has_valid_otp,
     resend_otp,
 )
+from utils.session_store import generate_token, save_session
 
 
 COOLDOWN_SECONDS = 60
 
 
 def render():
+    st.markdown(
+        "<style>"
+        "html, body, section[data-testid='stApp'] {"
+        "overflow-x: hidden !important;"
+        "}"
+        "section[data-testid='stApp'] {"
+        "background: linear-gradient(160deg, #F0ECE4 0%, #F8F5F0 100%) !important;"
+        "}"
+        "</style>",
+        unsafe_allow_html=True,
+    )
     email = st.session_state.get("pending_email", "")
     admin_id = st.session_state.get("pending_admin_id", "")
     purpose = st.session_state.get("otp_purpose", "")
@@ -39,10 +51,16 @@ def render():
 
     masked_email = email[:2] + "***" + email[email.index("@") :] if "@" in email else email
 
-    col1, col2, col3 = st.columns([1, 1.5, 1])
+    col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
-        st.write("##")
-        st.markdown("<h2 style='text-align: center;'>Verify OTP</h2>", unsafe_allow_html=True)
+        st.markdown(
+            "<div style='text-align:center;padding-bottom:1rem;'>"
+            "<h1 style='font-size:1.5rem;margin-bottom:0.25rem;'>Verify OTP</h1>"
+            "<div style='height:3px;width:2.5rem;background-color:var(--color-accent);"
+            "margin:0.5rem auto 0 auto;border-radius:2px;'></div>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
         st.info(f"A 6-digit code was sent to **{masked_email}**")
 
         if Config.APP_ENV == "development":
@@ -63,10 +81,14 @@ def render():
                             valid, error = verify_signin_otp(db, admin_id, code)
 
                         if valid:
+                            token = generate_token()
+                            save_session(token, admin_id)
+                            st.query_params["session_token"] = token
                             st.session_state.logged_in = True
                             st.session_state.admin_id = admin_id
                             st.session_state.login_timestamp = time.time()
                             st.session_state.page = "dashboard"
+                            st.session_state.session_token = token
                             st.session_state.pop("pending_admin_id", None)
                             st.session_state.pop("pending_email", None)
                             st.session_state.pop("otp_purpose", None)
@@ -102,7 +124,7 @@ def render():
                     finally:
                         db.close()
         with col_b:
-            if st.button("Back", key="back_btn", use_container_width=True):
+            if st.button("Back", key="back_btn", type="secondary", use_container_width=True):
                 for key in ["pending_admin_id", "pending_email", "otp_purpose"]:
                     st.session_state.pop(key, None)
                 st.rerun()

@@ -1,0 +1,154 @@
+Admin Module Gap Analysis: Spec vs. Current Implementation
+========================================================
+
+Generated from review of CODE/Admin-AirBnB (Streamlit-based admin panel)
+compared against the admin module flow specification.
+
+================================================================================
+1. DASHBOARD & OVERVIEW
+================================================================================
+
+  Feature                            Status    Notes
+  --------------------------------------------------------------------------
+  Summary Cards                      DONE      bookings, revenue, hosts, rooms
+  Total Registered Users             MISSING   only shows active hosts
+  Recent Activities Feed             MISSING   no activity timeline on dashboard
+  Pending Listing Approvals Widget   MISSING   no pending-count quick-link
+  Open Support Tickets Widget        MISSING   no ticket count/quick-link
+  Quick Access to Mgmt Sections      MISSING   only sidebar nav, no inline tiles
+
+================================================================================
+2. USER & HOST MANAGEMENT
+================================================================================
+
+  Feature                            Status    Notes
+  --------------------------------------------------------------------------
+  View/search users                  DONE      via Host API
+  Suspend/reactivate users           DONE      ban/unban flow
+  View user verification info        MISSING   guest detail doesn't show it
+  Assign host badges                 MISSING   no badge/tier system exists
+  Verification status display        PARTIAL   only on host detail page
+
+================================================================================
+3. LISTING & CONTENT MODERATION
+================================================================================
+
+  Feature                            Status    Notes
+  --------------------------------------------------------------------------
+  Listing approve/reject/suspend     DONE
+  Reported listings management       MISSING   count shown on dashboard only
+  Remove policy violations           MISSING   no explicit violation workflow
+  Review flagged content             MISSING   no content flagging system
+  Record moderation actions          DONE      via audit_log
+
+================================================================================
+4. BOOKING SUPERVISION
+================================================================================
+
+  Feature                            Status    Notes
+  --------------------------------------------------------------------------
+  View/search bookings               DONE      with cache sync
+  Cancel bookings                    DONE
+  Cancellation request queue         MISSING   admin cancels directly
+  Process refunds                    DONE
+  Booking disputes                   DONE      via disputes module
+  Administrative overrides           MISSING   no force-override for bookings
+
+================================================================================
+5. FINANCIAL OVERSIGHT
+================================================================================
+
+  Feature                            Status    Notes
+  --------------------------------------------------------------------------
+  View payment transactions          DONE      with cache sync
+  Withdrawal approval/rejection      DONE
+  Platform commission tracking       MISSING   % stored but never displayed/earned
+  Host payout monitoring             PARTIAL   wallet balance only
+  Revenue summaries / reports        MISSING   no report generation
+  Payment disputes                   DONE      via disputes module
+
+================================================================================
+6. ANALYTICS & REPORTS
+================================================================================
+
+  Feature                            Status    Notes
+  --------------------------------------------------------------------------
+  Revenue line chart                 DONE      7d/30d/90d/1y periods
+  Bookings-by-status bar chart       DONE
+  Gross Booking Value (GBV)          MISSING
+  User growth metrics                MISSING
+  Booking trends/insights            MISSING
+  Seasonal demand analysis           MISSING
+  Platform performance report        MISSING
+  Export reports                     PARTIAL   raw CSV only (bookings, payments)
+
+================================================================================
+7. PLATFORM SETTINGS
+================================================================================
+
+  Feature                            Status    Notes
+  --------------------------------------------------------------------------
+  Commission percentage              DONE
+  Host API URL/key                   DONE
+  SMTP settings                      DONE
+  Platform name / support email      DONE
+  Payout minimum amount              DONE
+  Platform / service fees            MISSING   not configurable via UI
+  Tax configuration                  MISSING   no tax settings at all
+  Cleaning fee limits                MISSING   no min/max cleaning fee
+
+================================================================================
+8. ADMIN DATABASE (PostgreSQL)
+================================================================================
+
+  Table                              Status    Notes
+  --------------------------------------------------------------------------
+  admin_users                        DONE
+  otp_codes                          DONE
+  login_attempts                     DONE
+  support_tickets                    DONE
+  ticket_messages                    DONE
+  activity_logs                      DONE
+  audit_log                          DONE
+  system_settings                    DONE
+  bookings_cache                     DONE
+  payments_cache                     DONE
+  reviews_cache                      DONE
+  disputes / dispute_messages        DONE
+  verification_records               MISSING   data lives only on Host API
+  moderation_actions                 MISSING   only generic audit_log table
+  reports                            MISSING   no reports table or storage
+  analytics_data                     MISSING   no analytics storage
+
+================================================================================
+9. ADMIN API ENDPOINTS (spec envisions REST layer)
+================================================================================
+
+  The current implementation is a Streamlit app that CONSUMES a Host API.
+  It does NOT expose any admin API endpoints of its own.
+  This is an architectural difference — not missing if not needed,
+  but would be required for programmatic/admin-mobile access.
+
+================================================================================
+SUMMARY OF MAJOR GAPS
+================================================================================
+
+  1. Dashboard is sparse — no recent activities, pending approvals,
+     open tickets, or quick-actions tiles.
+
+  2. No analytics/reports module — no GBV, user growth, seasonal demand,
+     platform performance, or formatted report generation.
+
+  3. Content moderation incomplete — no flagged content review,
+     violation removal, or dedicated reported-listings management.
+
+  4. No cancellation request queue — admin directly cancels bookings
+     instead of reviewing pending cancellation requests.
+
+  5. Host badges / verification display — no badge assignment and
+     verification status not shown on user or host detail pages.
+
+  6. Financial oversight is thin — no commission-earned tracking,
+     platform/service fees, tax configuration, or cleaning fee limits.
+
+  7. No admin API — the admin module itself exposes zero REST endpoints.

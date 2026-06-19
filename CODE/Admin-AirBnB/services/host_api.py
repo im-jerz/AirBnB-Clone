@@ -197,10 +197,10 @@ class HostAPIClient:
         return self._get(f"/api/admin/reviews/{review_id}")
 
     def hide_review(self, review_id: str) -> dict | None:
-        return self._get(f"/api/admin/reviews/{review_id}/hide")
+        return self._post(f"/api/admin/reviews/{review_id}/hide")
 
     def show_review(self, review_id: str) -> dict | None:
-        return self._get(f"/api/admin/reviews/{review_id}/show")
+        return self._post(f"/api/admin/reviews/{review_id}/show")
 
     # ── Withdrawals ────────────────────────────────────────
 

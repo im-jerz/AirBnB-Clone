@@ -20,12 +20,19 @@ def create_ticket(db: Session, guest_id: str, subject: str, description: str, pr
     return ticket
 
 
-def get_tickets(db: Session, status: str = "", assigned_to: str = "", page: int = 1, per_page: int = 20) -> dict:
+def get_tickets(db: Session, status: str = "", assigned_to: str = "", search: str = "", priority: str = "", page: int = 1, per_page: int = 20) -> dict:
     query = db.query(SupportTicket)
     if status:
         query = query.filter(SupportTicket.status == status)
     if assigned_to:
         query = query.filter(SupportTicket.assigned_to == assigned_to)
+    if search:
+        s = f"%{search}%"
+        query = query.filter(
+            (SupportTicket.subject.ilike(s)) | (SupportTicket.description.ilike(s))
+        )
+    if priority:
+        query = query.filter(SupportTicket.priority == priority)
     total = query.count()
     tickets = query.order_by(desc(SupportTicket.created_at)).offset((page - 1) * per_page).limit(per_page).all()
     return {"tickets": tickets, "total": total, "page": page, "per_page": per_page}

@@ -29,6 +29,7 @@ def get_disputes(
     db: Session,
     status: str = "",
     assigned_to: str = "",
+    search: str = "",
     page: int = 1,
     per_page: int = 20,
 ) -> dict:
@@ -37,6 +38,11 @@ def get_disputes(
         query = query.filter(Dispute.status == status)
     if assigned_to:
         query = query.filter(Dispute.assigned_to == assigned_to)
+    if search:
+        s = f"%{search}%"
+        query = query.filter(
+            (Dispute.booking_id.ilike(s)) | (Dispute.reason.ilike(s))
+        )
     total = query.count()
     disputes = query.order_by(desc(Dispute.created_at)).offset((page - 1) * per_page).limit(per_page).all()
     return {"disputes": disputes, "total": total, "page": page, "per_page": per_page}
