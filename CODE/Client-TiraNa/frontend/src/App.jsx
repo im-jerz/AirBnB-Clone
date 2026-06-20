@@ -1,13 +1,13 @@
 import { useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Homepage from './pages/Homepage.jsx'
-import AllRooms from './pages/AllRooms.jsx'
+import AllProperties from './pages/AllProperties.jsx'
 import Signup from './pages/Signup.jsx'
 import Signin from './pages/Signin.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import Profile from './pages/Profile.jsx'
-import RoomDetails from './pages/RoomDetails.jsx'
+import PropertyDetails from './pages/PropertyDetails.jsx'
 import About from './pages/About.jsx'
 import Notifications from './pages/Notifications.jsx'
 
@@ -23,8 +23,8 @@ function App() {
       <ScrollToTop />
       <Routes>
       <Route path="/" element={<Homepage />} />
-      <Route path="/rooms" element={<AllRooms />} />
-      <Route path="/rooms/:id" element={<RoomDetails />} />
+      <Route path="/properties" element={<AllProperties />} />
+      <Route path="/properties/:id" element={<PropertyDetails />} />
       <Route path="/client/signup" element={<Signup />} />
       <Route path="/client/signin" element={<Signin />} />
       <Route path="/client/forgot-password" element={<ForgotPassword />} />
