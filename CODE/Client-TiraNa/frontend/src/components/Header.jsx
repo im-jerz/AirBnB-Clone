@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 
 const navLinks = [
   { label: 'Home', path: '/' },
-  { label: 'Rooms', path: '/rooms' },
+  { label: 'Properties', path: '/properties' },
   { label: 'About', path: '/about' },
 ]
 
@@ -281,14 +281,15 @@ function Header() {
                     Sign Up
                   </Link>
                 ) : (
-                  <button
-                    type="button"
+                  <Link
+                    to="http://localhost:5174/signup"
+                    replace
                     className={`max-sm:hidden text-xs sm:text-sm font-medium transition-colors ${
                       t ? 'text-white/70 hover:text-white' : 'text-gray-500 hover:text-charcoal'
                     }`}
                   >
                     Sign Up
-                  </button>
+                  </Link>
                 )}
 
                 {role === 'guest' ? (
@@ -304,8 +305,9 @@ function Header() {
                     Sign In
                   </Link>
                 ) : (
-                  <button
-                    type="button"
+                  <Link
+                    to="http://localhost:5174/signin"
+                    replace
                     className={`inline-flex items-center text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2 font-medium transition-colors rounded ${
                       t
                         ? 'bg-white text-charcoal hover:bg-gray-100'
@@ -313,7 +315,7 @@ function Header() {
                     }`}
                   >
                     Sign In
-                  </button>
+                  </Link>
                 )}
               </>
             )}
