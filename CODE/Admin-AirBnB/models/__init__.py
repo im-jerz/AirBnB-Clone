@@ -13,6 +13,7 @@ from models.booking_copy import BookingCache
 from models.payment_copy import PaymentCache
 from models.review_copy import ReviewCache
 from models.dispute import Dispute, DisputeMessage
+from models.host_badge import HostBadge
 from database import Base, engine
 
 logger = logging.getLogger(__name__)

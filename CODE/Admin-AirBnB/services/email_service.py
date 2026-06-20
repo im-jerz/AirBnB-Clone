@@ -1,8 +1,12 @@
+import logging
 import smtplib
+
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from config import Config
+
+logger = logging.getLogger(__name__)
 
 
 def send_otp_email(email: str, code: str, purpose: str) -> bool:
@@ -16,16 +20,17 @@ def send_otp_email(email: str, code: str, purpose: str) -> bool:
     }
 
     msg = MIMEMultipart()
-    msg["From"] = Config.SMTP_FROM
+    msg["From"] = Config.SMTP_USER
     msg["To"] = email
     msg["Subject"] = subjects.get(purpose, "Verification Code")
     msg.attach(MIMEText(bodies.get(purpose, f"Your code is: {code}"), "plain"))
 
     try:
-        with smtplib.SMTP(Config.SMTP_HOST, Config.SMTP_PORT) as server:
+        with smtplib.SMTP(Config.SMTP_HOST, Config.SMTP_PORT, timeout=10) as server:
             server.starttls()
             server.login(Config.SMTP_USER, Config.SMTP_PASS)
-            server.sendmail(Config.SMTP_FROM, email, msg.as_string())
+            server.sendmail(Config.SMTP_USER, email, msg.as_string())
         return True
-    except Exception:
+    except Exception as e:
+        logger.error("SMTP send failed to %s (purpose=%s): %s", email, purpose, e)
         return False

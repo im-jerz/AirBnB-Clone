@@ -188,6 +188,14 @@ def resend_otp(db: Session, admin_id: str, purpose: str, email: str) -> tuple[st
     if recent_otps >= 3:
         return None, "Too many resend requests. Please wait a few minutes."
 
+    # Invalidate previous unused OTPs so only the latest one works
+    db.query(OTPCode).filter(
+        OTPCode.admin_id == admin_id,
+        OTPCode.purpose == purpose,
+        OTPCode.used == False,
+    ).update({"used": True})
+    db.commit()
+
     code = generate_otp(db, admin_id, purpose)
     email_sent = send_otp_email(email, code, purpose)
     if Config.APP_ENV == "development":

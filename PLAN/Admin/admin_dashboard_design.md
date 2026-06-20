@@ -7,7 +7,7 @@
 - **Pattern:** Modular Monolith – Single repo, clear module boundaries, easy to split later
 - **Frontend:** Streamlit Multi-Page App – As specified
 - **Database:** PostgreSQL + SQLAlchemy ORM – Parameterized queries, migrations via Alembic
-- **Auth:** Session-based via `streamlit-authenticator` – Bcrypt hashing, 30‑min timeout
+- **Auth:** Session-based via `streamlit-authenticator` – Bcrypt hashing, 30‑min timeout, OTP verification
 - **State:** `st.session_state` + cached DB queries – Streamlit-native
 
 **Data ownership principle:**
@@ -18,7 +18,34 @@
 
 ---
 
-## 2. Host Module API Contract
+## 2. Admin Login Flow
+
+```
+Admin enters email/password
+       ↓
+streamlit-authenticator (bcrypt check sa admin_accounts table)
+       ↓
+If 5 failed attempts → lock for 15 min (rate limiting)
+       ↓
+Success → Generate OTP (6 digits) → Save to otp_verifications table
+       ↓
+Admin enters OTP
+       ↓
+OTP verified → session stored (30 min timeout)
+       ↓
+Redirect to Dashboard
+```
+
+**OTP Details:**
+
+- 6-digit code, expires in 5 minutes
+- Purpose: `'login'`
+- Stored in `otp_verifications` table
+- Audit log on successful login: `admin_id`, `action: 'login'`, `ip_address`
+
+---
+
+## 3. Host Module API Contract
 
 Admin dashboard will call these endpoints (to be implemented by Host module team).
 
@@ -34,6 +61,7 @@ Base URL stored in `system_settings` keys.
 **Host endpoints:**
 
 - `GET /api/admin/hosts/{external_id}` – get host details (badge, verification, total listings)
+- `GET /api/admin/hosts/{external_id}/wallet` – get host wallet balance
 
 **Guest endpoints:**
 
@@ -46,8 +74,9 @@ Base URL stored in `system_settings` keys.
 - `GET /api/admin/bookings/{id}` – get booking details
 - `GET /api/admin/bookings/{id}/timeline` – get booking status timeline
 
-**Payment endpoints (read-only):**
+**Payment endpoints:**
 
+- `POST /api/payment/initiate` – initiate payment (amount based on room price from Host module DB)
 - `GET /api/admin/payments` – get all payments (paginated)
 - `GET /api/admin/payments?booking_id={id}` – get payment by booking
 - `GET /api/admin/payments/{id}` – get payment details
@@ -73,22 +102,24 @@ Base URL stored in `system_settings` keys.
 
 **Authentication:** API key (sent as `X-API-Key` header) or JWT (to be decided with Host module team).
 
+**Note:** PayMongo test key only, no webhook initially.
+
 ---
 
-## 3. Pages Overview
+## 4. Pages Overview
 
 1. **Dashboard** – KPIs, revenue chart, alerts. Data from admin DB + Host API.
 2. **Admin Management** – Manage admin accounts (CRUD, OTP invites). Data from admin DB.
 3. **Listings Moderation** – Approve/reject/suspend listings. Data from Host API.
 4. **Bookings** – View, cancel, export bookings. Data from admin DB.
-5. **Payments** – Process refunds, view revenue. Data from admin DB + PayMongo webhook.
+5. **Payments** – Process refunds, view revenue. Data from admin DB + Host API.
 6. **Reviews** – Moderate reviews. Data from admin DB.
 7. **Support & Disputes** – Ticket system, KYC verification. Data from admin DB.
 8. **Settings** – Commission %, API URLs, etc. Data from admin DB.
 
 ---
 
-## 4. Data Flow
+## 5. Data Flow
 
 **Booking flow:**
 
@@ -105,11 +136,13 @@ Client → Host Flask API → Host Oracle DB (hosts, listings, original bookings
 **Payment flow:**
 
 ```
-Client → PayMongo → Host webhook → Host Oracle DB
-                ↓
-         Admin ← Host API (GET /api/admin/payments) ← Host Oracle DB
-                ↓
-         Admin views payments, tracks commissions (read-only)
+Client clicks "Pay" → Admin dashboard calls:
+POST /api/payment/initiate (Host module API)
+→ Amount based on room price from Host module DB
+→ Returns payment link or PayMongo test key
+→ Client completes payment
+→ Host module updates their DB
+→ Admin polls for payment status
 ```
 
 **Support ticket flow:**
@@ -146,10 +179,11 @@ Host → Host API (POST /api/withdrawals) → Host Oracle DB
 
 ---
 
-## 5. Security & Auth
+## 6. Security & Auth
 
 - **Admin login** – uses `admin_accounts` table; no `role` column.
 - **Session** – `streamlit-authenticator` with bcrypt; timeout 30 min.
+- **OTP** – 6-digit code, 5 min expiry, stored in `otp_verifications` table.
 - **Audit** – every admin write action logged to `audit_log`.
 - **Rate limiting** – 5 failed login attempts per 15 min (DB tracked).
 - **API calls to Host module** – use API key stored in `system_settings`.
@@ -162,15 +196,15 @@ Host → Host API (POST /api/withdrawals) → Host Oracle DB
 
 ---
 
-## 6. Implementation Plan (10 phases)
+## 7. Implementation Plan (10 phases)
 
 1. Project scaffold, DB connection, Alembic – ~8 files
-2. Auth system (admin login, session) – ~4 files
+2. Auth system (admin login, OTP, session) – ~5 files
 3. Dashboard Overview (KPIs, charts) – ~3 files
 4. Admin Management (CRUD, OTP invites) – ~4 files
 5. Listings Moderation (API client + Host API) – ~4 files
 6. Bookings Management (calendar, cancellations) – ~3 files
-7. Payments & Refunds (PayMongo integration) – ~4 files
+7. Payments & Refunds (Host API integration) – ~4 files
 8. Reviews Management – ~2 files
 9. Support & Disputes (tickets, KYC) – ~4 files
 10. System Settings & Audit Log – ~3 files

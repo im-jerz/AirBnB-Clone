@@ -8,9 +8,9 @@ gatherUsageStats = false
 headless = true
 
 [theme]
-base = "dark"
-primaryColor = "#1E88E5"
-backgroundColor = "#0E1117"
-secondaryBackgroundColor = "#262730"
-textColor = "#FAFAFA"
+base = "light"
+primaryColor = "#7B1E3A"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F5F5"
+textColor = "#1A1A1A"
 font = "sans serif"
