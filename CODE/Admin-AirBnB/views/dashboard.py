@@ -78,8 +78,10 @@ def render(*, admin):
 
     st.title(f"Welcome, {admin.full_name}!")
 
-    if not host_api.is_available():
-        st.warning("Host API unavailable")
+    host_available = host_api.is_available()
+
+    if not host_available:
+        st.info("Host API is currently unavailable. Showing local platform data only.")
 
     with st.spinner("Loading dashboard data..."):
         stats = host_api.get_stats()

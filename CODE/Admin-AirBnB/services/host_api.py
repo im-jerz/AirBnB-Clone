@@ -23,7 +23,7 @@ class HostAPIClient:
             resp.raise_for_status()
             return resp.json()
         except Exception as e:
-            logger.warning("Host API unavailable (%s): %s", path, e)
+            logger.debug("Host API unavailable (%s): %s", path, e)
             return None
 
     def _post(self, path: str, json: dict | None = None) -> dict | None:
@@ -37,7 +37,7 @@ class HostAPIClient:
             resp.raise_for_status()
             return resp.json()
         except Exception as e:
-            logger.warning("Host API unavailable (%s): %s", path, e)
+            logger.debug("Host API unavailable (%s): %s", path, e)
             return None
 
     def _delete(self, path: str) -> dict | None:
@@ -50,19 +50,28 @@ class HostAPIClient:
             resp.raise_for_status()
             return resp.json() if resp.content else {}
         except Exception as e:
-            logger.warning("Host API unavailable (%s): %s", path, e)
+            logger.debug("Host API unavailable (%s): %s", path, e)
             return None
+
+    def is_available(self) -> bool:
+        try:
+            resp = requests.get(f"{self.base_url}/api/admin/stats", headers=self.headers, timeout=3)
+            return resp.status_code == 200
+        except Exception:
+            return False
 
     # ── Stats ──────────────────────────────────────────────
 
     def get_stats(self) -> dict:
         data = self._get("/api/admin/stats")
         return data if data else {
+            "total_users": 0,
             "total_bookings": 0,
             "total_revenue": 0,
             "active_hosts": 0,
             "active_rooms": 0,
             "pending_verifications": 0,
+            "pending_listings": 0,
             "reported_rooms": 0,
             "open_disputes": 0,
         }
@@ -73,19 +82,12 @@ class HostAPIClient:
     def get_booking_stats(self, period: str = "30d") -> list:
         return self._get("/api/admin/stats/bookings", params={"period": period}) or []
 
-    def is_available(self) -> bool:
-        try:
-            resp = requests.get(f"{self.base_url}/api/admin/stats", headers=self.headers, timeout=3)
-            return resp.status_code == 200
-        except Exception:
-            return False
-
     # ── Guests ─────────────────────────────────────────────
 
-    def get_guests(self, search: str = "", status: str = "", page: int = 1, per_page: int = 20) -> dict | None:
+    def get_guests(self, search: str = "", status: str = "", page: int = 1, per_page: int = 20) -> dict:
         return self._get("/api/admin/guests", params={
             "search": search, "status": status, "page": page, "per_page": per_page
-        })
+        }) or {"guests": [], "total": 0}
 
     def get_guest(self, guest_id: str) -> dict | None:
         return self._get(f"/api/admin/guests/{guest_id}")
@@ -98,10 +100,10 @@ class HostAPIClient:
 
     # ── Hosts ──────────────────────────────────────────────
 
-    def get_hosts(self, search: str = "", status: str = "", page: int = 1, per_page: int = 20) -> dict | None:
+    def get_hosts(self, search: str = "", status: str = "", page: int = 1, per_page: int = 20) -> dict:
         return self._get("/api/admin/hosts", params={
             "search": search, "status": status, "page": page, "per_page": per_page
-        })
+        }) or {"hosts": [], "total": 0}
 
     def get_host(self, host_id: str) -> dict | None:
         return self._get(f"/api/admin/hosts/{host_id}")
@@ -115,15 +117,17 @@ class HostAPIClient:
     def reactivate_host(self, host_id: str) -> dict | None:
         return self._post(f"/api/admin/hosts/{host_id}/reactivate")
 
-    def get_host_wallet(self, host_id: str) -> dict | None:
-        return self._get(f"/api/admin/hosts/{host_id}/wallet")
+    def get_host_wallet(self, host_id: str) -> dict:
+        return self._get(f"/api/admin/hosts/{host_id}/wallet") or {
+            "balance": 0, "pending_payout": 0, "total_earned": 0
+        }
 
     # ── Verifications ──────────────────────────────────────
 
-    def get_verifications(self, status: str = "pending", page: int = 1, per_page: int = 20) -> dict | None:
+    def get_verifications(self, status: str = "pending", page: int = 1, per_page: int = 20) -> dict:
         return self._get("/api/admin/verifications", params={
             "status": status, "page": page, "per_page": per_page
-        })
+        }) or {"verifications": [], "total": 0}
 
     def get_verification(self, verification_id: str) -> dict | None:
         return self._get(f"/api/admin/verifications/{verification_id}")
@@ -136,10 +140,10 @@ class HostAPIClient:
 
     # ── Listings ───────────────────────────────────────────
 
-    def get_listings(self, status: str = "", search: str = "", page: int = 1, per_page: int = 20) -> dict | None:
+    def get_listings(self, status: str = "", search: str = "", page: int = 1, per_page: int = 20) -> dict:
         return self._get("/api/admin/listings", params={
             "status": status, "search": search, "page": page, "per_page": per_page
-        })
+        }) or {"listings": [], "total": 0}
 
     def get_listing(self, listing_id: str) -> dict | None:
         return self._get(f"/api/admin/listings/{listing_id}")
@@ -155,27 +159,27 @@ class HostAPIClient:
 
     # ── Bookings ───────────────────────────────────────────
 
-    def get_bookings(self, status: str = "", page: int = 1, per_page: int = 20) -> dict | None:
+    def get_bookings(self, status: str = "", page: int = 1, per_page: int = 20) -> dict:
         return self._get("/api/admin/bookings", params={
             "status": status, "page": page, "per_page": per_page
-        })
+        }) or {"bookings": [], "total": 0}
 
     def get_booking(self, booking_id: str) -> dict | None:
         return self._get(f"/api/admin/bookings/{booking_id}")
 
-    def get_booking_timeline(self, booking_id: str) -> list | None:
-        return self._get(f"/api/admin/bookings/{booking_id}/timeline")
+    def get_booking_timeline(self, booking_id: str) -> list:
+        return self._get(f"/api/admin/bookings/{booking_id}/timeline") or []
 
     def cancel_booking(self, booking_id: str, reason: str = "") -> dict | None:
         return self._post(f"/api/admin/bookings/{booking_id}/cancel", json={"reason": reason})
 
     # ── Payments ───────────────────────────────────────────
 
-    def get_payments(self, booking_id: str = "", page: int = 1, per_page: int = 20) -> dict | None:
+    def get_payments(self, booking_id: str = "", page: int = 1, per_page: int = 20) -> dict:
         params: dict = {"page": page, "per_page": per_page}
         if booking_id:
             params["booking_id"] = booking_id
-        return self._get("/api/admin/payments", params=params)
+        return self._get("/api/admin/payments", params=params) or {"payments": [], "total": 0}
 
     def get_payment(self, payment_id: str) -> dict | None:
         return self._get(f"/api/admin/payments/{payment_id}")
@@ -187,11 +191,11 @@ class HostAPIClient:
 
     # ── Reviews ────────────────────────────────────────────
 
-    def get_reviews(self, listing_id: str = "", page: int = 1, per_page: int = 20) -> dict | None:
+    def get_reviews(self, listing_id: str = "", page: int = 1, per_page: int = 20) -> dict:
         params: dict = {"page": page, "per_page": per_page}
         if listing_id:
             params["listing_id"] = listing_id
-        return self._get("/api/admin/reviews", params=params)
+        return self._get("/api/admin/reviews", params=params) or {"reviews": [], "total": 0}
 
     def get_review(self, review_id: str) -> dict | None:
         return self._get(f"/api/admin/reviews/{review_id}")
@@ -204,10 +208,10 @@ class HostAPIClient:
 
     # ── Withdrawals ────────────────────────────────────────
 
-    def get_withdrawals(self, page: int = 1, per_page: int = 20) -> dict | None:
+    def get_withdrawals(self, page: int = 1, per_page: int = 20) -> dict:
         return self._get("/api/admin/withdrawals", params={
             "page": page, "per_page": per_page
-        })
+        }) or {"withdrawals": [], "total": 0}
 
     def approve_withdrawal(self, withdrawal_id: str) -> dict | None:
         return self._post(f"/api/admin/withdrawals/{withdrawal_id}/approve")
