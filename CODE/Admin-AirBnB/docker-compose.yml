@@ -3,18 +3,20 @@ services:
     build: .
     ports:
       - "8501:8501"
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       HOST_API_URL: http://host.docker.internal:5000
-      HOST_API_KEY: your-api-key-here
-      APP_ENV: development
-      SECRET_KEY: change-me-in-production
-      SMTP_HOST: smtp.gmail.com
-      SMTP_PORT: "587"
-      SMTP_USER: ""
-      SMTP_PASS: ""
-      SMTP_FROM: noreply@airbnb-admin.com
-      OTP_EXPIRY_MINUTES: "10"
+      HOST_API_KEY: ${HOST_API_KEY}
+      APP_ENV: ${APP_ENV:-development}
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM:-noreply@airbnb-admin.com}
+      OTP_EXPIRY_MINUTES: "${OTP_EXPIRY_MINUTES:-10}"
     volumes:
       - .:/app
     depends_on:

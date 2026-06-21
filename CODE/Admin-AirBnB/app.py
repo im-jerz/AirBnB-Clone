@@ -64,21 +64,119 @@ hide_sidebar_css = """
             display: none !important;
             visibility: hidden !important;
         }
+        [data-testid="stSidebar"] {
+            display: none !important;
+        }
     </style>
 """
 
 tirana_theme_css = """
     <style>
-        /* ── Global background ─────────────────────────── */
-        [data-testid="stApp"],
-        .main .block-container {
-            background-color: #2C3E2D !important;
-            color: #F5F5F0 !important;
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300;700,0..100,0..1&family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+        :root {
+            --font-display: 'Fraunces', Georgia, serif;
+            --font-body: 'Sora', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+            --color-primary: #7B1E3A;
+            --color-primary-light: #A0455E;
+            --color-primary-hover: #63152D;
+            --color-primary-surface: #FDF1F4;
+            --color-accent: #D4943E;
+            --color-accent-hover: #C08434;
+            --color-bg: #F8F5F0;
+            --color-surface: #FFFFFF;
+            --color-border: #E5DDD4;
+            --color-text: #1C1816;
+            --color-text-muted: #8A7D72;
+            --color-sidebar-bg: #7B1E3A;
+            --color-sidebar-text: #FFFFFF;
+            --color-sidebar-hover: rgba(255,255,255,0.12);
+            --color-sidebar-active: #D4943E;
+            --color-success: #6B8F5E;
+            --color-warning: #D4943E;
         }
 
-        /* ── Sidebar ───────────────────────────────────── */
+        * { font-family: var(--font-body); }
+
+        header[data-testid="stHeader"],
+        [data-testid="stHeader"],
+        .stAppDeployButton,
+        header {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0px !important;
+        }
+        .block-container { padding-top: 1.5rem !important; }
+
+        /* -- Canvas: light gray workspace ----------------------------- */
+        [data-testid="stApp"],
+        .main .block-container {
+            background-color: var(--color-bg) !important;
+            color: var(--color-text) !important;
+        }
+
+        /* -- Typography ------------------------------------------------ */
+        h1, h2 {
+            font-family: var(--font-display) !important;
+            color: var(--color-text) !important;
+            font-weight: 600 !important;
+            letter-spacing: -0.01em !important;
+        }
+        h1 { font-size: 1.75rem !important; line-height: 1.3 !important; }
+        h2 { font-size: 1.375rem !important; line-height: 1.35 !important; }
+        h3, h4, h5, h6 {
+            font-family: var(--font-body) !important;
+            color: var(--color-text) !important;
+        }
+        h3 {
+            font-size: 1.125rem !important;
+            font-weight: 600 !important;
+            line-height: 1.4 !important;
+        }
+        h4 {
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+        }
+        h5 {
+            font-size: 0.9375rem !important;
+            font-weight: 500 !important;
+        }
+        h6 {
+            font-size: 0.875rem !important;
+            font-weight: 500 !important;
+        }
+        .stMarkdown p, .stMarkdown li, .stMarkdown span,
+        .stCaption, label {
+            font-family: var(--font-body) !important;
+            color: var(--color-text) !important;
+        }
+        .stCaption { font-size: 0.8125rem !important; color: var(--color-text-muted) !important; }
+
+        hr {
+            border-color: var(--color-border) !important;
+            margin: 1.25rem 0 !important;
+            opacity: 0.5;
+        }
+
+        /* -- Page header accent ---------------------------------------- */
+        .page-head {
+            margin-bottom: 1.5rem !important;
+        }
+        .page-head h1 {
+            margin-bottom: 0.5rem !important;
+        }
+        .page-head .accent-line {
+            height: 3px;
+            width: 2.5rem;
+            background-color: var(--color-accent);
+            border-radius: 2px;
+        }
+
+        /* -- Sidebar: burgundy, collapsible ---------------------------- */
         [data-testid="stSidebar"] {
-            background-color: #1E2B1F !important;
+            background-color: var(--color-sidebar-bg) !important;
+            transition: width 0.2s ease !important;
         }
         [data-testid="stSidebar"] .stMarkdown p,
         [data-testid="stSidebar"] .stMarkdown h1,
@@ -86,169 +184,296 @@ tirana_theme_css = """
         [data-testid="stSidebar"] .stMarkdown h3,
         [data-testid="stSidebar"] .stMarkdown h4,
         [data-testid="stSidebar"] .stMarkdown h5,
-        [data-testid="stSidebar"] .stMarkdown h6,
+        [data-testid="stSidebar"] .stMarkdown h6 {
+            color: var(--color-sidebar-text) !important;
+            font-family: var(--font-body) !important;
+        }
+        [data-testid="stSidebar"] .stMarkdown h3 {
+            font-family: var(--font-body) !important;
+            font-weight: 600 !important;
+            font-size: 0.7rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.08em !important;
+            color: rgba(255,255,255,0.4) !important;
+            margin-bottom: 0.5rem !important;
+        }
         [data-testid="stSidebar"] .stCaption,
         [data-testid="stSidebar"] label,
         [data-testid="stSidebar"] span {
-            color: #F5F5F0 !important;
+            color: var(--color-sidebar-text) !important;
+        }
+        [data-testid="stSidebar"] hr {
+            border-color: rgba(255,255,255,0.08) !important;
         }
         [data-testid="stSidebar"] .stButton > button {
-            background-color: #3A4F3B !important;
-            color: #F5F5F0 !important;
-            border: 1px solid #4A6B4C !important;
+            background-color: transparent !important;
+            color: var(--color-sidebar-text) !important;
+            border: none !important;
+            border-radius: 0.375rem !important;
+            padding: 0.45rem 0.75rem !important;
+            font-family: var(--font-body) !important;
+            font-size: 0.9375rem !important;
+            font-weight: 400 !important;
+            text-align: left !important;
+            transition: background-color 0.15s ease !important;
         }
         [data-testid="stSidebar"] .stButton > button:hover {
-            background-color: #4A6B4C !important;
+            background-color: var(--color-sidebar-hover) !important;
+            color: var(--color-sidebar-text) !important;
         }
         [data-testid="stSidebar"] .stButton > button[kind="primary"] {
-            background-color: #6B8F5E !important;
-            color: #F5F5F0 !important;
+            background-color: var(--color-sidebar-active) !important;
+            color: #FFFFFF !important;
+            font-weight: 500 !important;
+        }
+        [data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
+            background-color: var(--color-primary-hover) !important;
+            color: #FFFFFF !important;
         }
 
-        /* ── Headings & text ────────────────────────────── */
-        h1, h2, h3, h4, h5, h6,
-        .stMarkdown p,
-        .stMarkdown li,
-        .stMarkdown span,
-        .stCaption,
-        label,
-        .stTabs [data-baseweb="tab"] {
-            color: #F5F5F0 !important;
+        /* -- Sidebar collapse/expand buttons --------------------------- */
+        [data-testid="stSidebarCollapseButton"],
+        button[title="Open sidebar"],
+        button[title="Close sidebar"] {
+            opacity: 0.6 !important;
+            transition: opacity 0.15s ease !important;
+            color: #FFFFFF !important;
+        }
+        [data-testid="stSidebarCollapseButton"]:hover,
+        button[title="Close sidebar"]:hover {
+            opacity: 1 !important;
+        }
+        button[title="Open sidebar"] {
+            background-color: var(--color-sidebar-bg) !important;
+            opacity: 0.8 !important;
+            border-radius: 0 0.375rem 0.375rem 0 !important;
+        }
+        button[title="Open sidebar"]:hover {
+            opacity: 1 !important;
         }
 
-        /* ── Text inputs & text areas ──────────────────── */
+        /* -- Inputs ---------------------------------------------------- */
         .stTextInput > div > div > input,
         .stTextArea > div > div > textarea,
         .stNumberInput > div > div > input,
         .stDateInput > div > div > input {
-            background-color: #3A4F3B !important;
-            color: #F5F5F0 !important;
-            border: 1px solid #4A6B4C !important;
+            background-color: var(--color-surface) !important;
+            color: var(--color-text) !important;
+            border: 1px solid var(--color-border) !important;
+            border-radius: 0.375rem !important;
+            font-family: var(--font-body) !important;
+            font-size: 0.9375rem !important;
+            padding: 0.5rem 0.75rem !important;
         }
         .stTextInput > div > div > input:focus,
         .stTextArea > div > div > textarea:focus {
-            border-color: #6B8F5E !important;
-            box-shadow: 0 0 0 1px #6B8F5E !important;
+            border-color: var(--color-accent) !important;
+            box-shadow: 0 0 0 3px rgba(212,148,62,0.25) !important;
         }
-
-        /* ── Selectbox / Radio / Checkbox ──────────────── */
         .stSelectbox > div > div,
         .stMultiSelect > div > div,
         .stRadio > div {
-            background-color: #3A4F3B !important;
-            color: #F5F5F0 !important;
+            background-color: var(--color-surface) !important;
+            color: var(--color-text) !important;
         }
         .stSelectbox [data-baseweb="select"] {
-            background-color: #3A4F3B !important;
-            color: #F5F5F0 !important;
+            background-color: var(--color-surface) !important;
+            color: var(--color-text) !important;
+            border-color: var(--color-border) !important;
         }
-        .stSelectbox [data-baseweb="select"] svg {
-            fill: #F5F5F0 !important;
-        }
-        .stRadio label,
-        .stCheckbox label {
-            color: #F5F5F0 !important;
-        }
+        .stSelectbox [data-baseweb="select"] svg { fill: var(--color-text-muted) !important; }
+        .stRadio label, .stCheckbox label { color: var(--color-text) !important; }
 
-        /* ── Buttons ────────────────────────────────────── */
+        /* -- Buttons --------------------------------------------------- */
         .stButton > button {
-            background-color: #6B8F5E !important;
-            color: #F5F5F0 !important;
+            background-color: var(--color-primary) !important;
+            color: #FFFFFF !important;
             border: none !important;
+            border-radius: 0.375rem !important;
+            font-family: var(--font-body) !important;
+            font-size: 0.875rem !important;
+            font-weight: 500 !important;
+            padding: 0.45rem 1rem !important;
+            transition: background-color 0.15s ease !important;
         }
         .stButton > button:hover {
-            background-color: #8AAF7C !important;
-            color: #F5F5F0 !important;
+            background-color: var(--color-primary-hover) !important;
+            color: #FFFFFF !important;
         }
         .stButton > button[kind="secondary"] {
-            background-color: #3A4F3B !important;
-            color: #F5F5F0 !important;
-            border: 1px solid #4A6B4C !important;
+            background: none !important;
+            color: var(--color-text-muted) !important;
+            border: none !important;
+            font-size: 0.875rem !important;
+            font-weight: 400 !important;
+            padding: 0.25rem 0.5rem !important;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            text-decoration-color: transparent;
+            transition: color 0.15s ease, text-decoration-color 0.15s ease;
         }
         .stButton > button[kind="secondary"]:hover {
-            background-color: #4A6B4C !important;
+            color: var(--color-accent) !important;
+            background: none !important;
+            text-decoration-color: var(--color-accent);
         }
         .stDownloadButton > button {
-            background-color: #6B8F5E !important;
-            color: #F5F5F0 !important;
+            background-color: var(--color-primary) !important;
+            color: #FFFFFF !important;
         }
 
-        /* ── Metric cards ───────────────────────────────── */
+        /* -- Metric cards ---------------------------------------------- */
         [data-testid="stMetric"] {
-            background-color: #3A4F3B !important;
-            border: 1px solid #4A6B4C !important;
-            border-radius: 0.75rem !important;
-            padding: 1rem !important;
+            background-color: var(--color-surface) !important;
+            border: 1px solid var(--color-border) !important;
+            border-top: 3px solid var(--color-accent) !important;
+            border-radius: 0.5rem !important;
+            padding: 1.25rem 1rem !important;
+            box-shadow: 0 1px 3px rgba(44,24,16,0.06) !important;
         }
-        [data-testid="stMetric"] label,
-        [data-testid="stMetric"] [data-testid="stMetricValue"],
+        [data-testid="stMetric"] label {
+            font-family: var(--font-body) !important;
+            font-size: 0.8125rem !important;
+            font-weight: 500 !important;
+            color: var(--color-text-muted) !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.04em !important;
+        }
+        [data-testid="stMetric"] [data-testid="stMetricValue"] {
+            font-family: var(--font-mono) !important;
+            font-size: 1.75rem !important;
+            font-weight: 600 !important;
+            color: var(--color-text) !important;
+            line-height: 1.2 !important;
+        }
         [data-testid="stMetric"] [data-testid="stMetricDelta"] {
-            color: #F5F5F0 !important;
+            font-family: var(--font-body) !important;
+            color: var(--color-text-muted) !important;
         }
 
-        /* ── Containers / Borders ───────────────────────── */
+        /* -- Containers ------------------------------------------------ */
         [data-testid="stExpander"],
         .stContainer,
         [data-baseweb="modal"] {
-            background-color: #3A4F3B !important;
-            border-color: #4A6B4C !important;
+            background-color: var(--color-surface) !important;
+            border-color: var(--color-border) !important;
+            border-radius: 0.5rem !important;
+        }
+        .stContainer {
+            border: 1px solid var(--color-border) !important;
+            box-shadow: 0 1px 3px rgba(44,24,16,0.06) !important;
         }
 
-        /* ── Dividers ───────────────────────────────────── */
-        hr {
-            border-color: #4A6B4C !important;
-        }
-
-        /* ── Tabs ───────────────────────────────────────── */
+        /* -- Tabs ------------------------------------------------------ */
         .stTabs [data-baseweb="tab-list"] {
-            background-color: #2C3E2D !important;
+            background-color: transparent !important;
+            border-bottom: 1px solid var(--color-border) !important;
+            gap: 0 !important;
         }
         .stTabs [data-baseweb="tab"] {
-            color: #B8C9B9 !important;
+            color: var(--color-text-muted) !important;
+            font-family: var(--font-body) !important;
+            font-size: 0.875rem !important;
+            font-weight: 500 !important;
+            padding: 0.5rem 1rem !important;
         }
         .stTabs [aria-selected="true"] {
-            color: #F5F5F0 !important;
-            border-bottom-color: #6B8F5E !important;
+            color: var(--color-primary) !important;
+            border-bottom-color: var(--color-primary) !important;
+            font-weight: 600 !important;
         }
 
-        /* ── Dataframe / Table ──────────────────────────── */
+        /* -- DataFrames ------------------------------------------------ */
         .stDataFrame,
         [data-testid="stDataFrame"] {
-            background-color: #3A4F3B !important;
+            background-color: var(--color-surface) !important;
+        }
+        .stDataFrame [data-testid="StyledDataFrameColHeader"] {
+            font-family: var(--font-body) !important;
         }
 
-        /* ── Plotly charts background ───────────────────── */
+        /* -- Charts ---------------------------------------------------- */
         .stPlotlyChart .stAlert,
-        .stPlotlyChart {
-            background-color: transparent !important;
-        }
+        .stPlotlyChart { background-color: transparent !important; }
 
-        /* ── Toast / Alerts ─────────────────────────────── */
+        /* -- Alerts ---------------------------------------------------- */
         .stAlert {
-            background-color: #3A4F3B !important;
-            border-color: #4A6B4C !important;
-            color: #F5F5F0 !important;
+            background-color: var(--color-surface) !important;
+            border: 1px solid var(--color-border) !important;
+            border-left: 4px solid var(--color-accent) !important;
+            color: var(--color-text) !important;
+            font-family: var(--font-body) !important;
+            border-radius: 0.375rem !important;
         }
 
-        /* ── Spinner / Progress ─────────────────────────── */
-        .stSpinner > div {
-            border-top-color: #6B8F5E !important;
+        .stSpinner > div { border-top-color: var(--color-primary) !important; }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #EDE8E0; }
+        ::-webkit-scrollbar-thumb { background: #C4B8AA; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #A89888; }
+
+        .element-container:has(> .stAlert) { margin-bottom: 0.5rem; }
+
+        /* -- KPI grid (dashboard) -------------------------------------- */
+        .kpi-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 0.5rem;
+        }
+        .kpi-card {
+            background: var(--color-surface); border: 1px solid var(--color-border);
+            border-top: 3px solid var(--color-accent); border-radius: 0.5rem;
+            padding: 1.25rem 1rem; box-shadow: 0 1px 3px rgba(44,24,16,0.06);
+        }
+        .kpi-card .kpi-label {
+            font-family: var(--font-body); font-size: 0.8125rem; font-weight: 500;
+            color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .kpi-card .kpi-value {
+            font-family: var(--font-mono); font-size: 1.75rem; font-weight: 600;
+            color: var(--color-text); line-height: 1.2; margin-top: 0.25rem;
+        }
+        .kpi-card .kpi-sub {
+            font-family: var(--font-body); font-size: 0.8125rem; color: var(--color-text-muted); margin-top: 0.125rem;
         }
 
-        /* ── Scrollbar ──────────────────────────────────── */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        /* -- Section card (dashboard panels) -------------------------- */
+        .section-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-top: 3px solid var(--color-accent);
+            border-radius: 0.5rem;
+            padding: 1rem 1.125rem;
+            box-shadow: 0 1px 3px rgba(44,24,16,0.06);
         }
-        ::-webkit-scrollbar-track {
-            background: #1E2B1F;
+        .section-card h3 {
+            margin-top: 0 !important;
+            margin-bottom: 0.75rem !important;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #4A6B4C;
-            border-radius: 4px;
+
+        /* -- Quick action cards (dashboard) ---------------------------- */
+        .qa-grid .stButton > button {
+            background: var(--color-surface) !important;
+            color: var(--color-text) !important;
+            border: 1px solid var(--color-border) !important;
+            border-top: 3px solid var(--color-accent) !important;
+            border-radius: 0.5rem !important;
+            padding: 1rem 0.75rem !important;
+            height: 100% !important;
+            min-height: 5rem;
+            box-shadow: 0 1px 3px rgba(44,24,16,0.06) !important;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            line-height: 1.4 !important;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6B8F5E;
+        .qa-grid .stButton > button:hover {
+            border-color: var(--color-accent) !important;
+            box-shadow: 0 2px 8px rgba(212,148,62,0.12) !important;
+            background: var(--color-surface) !important;
         }
     </style>
 """

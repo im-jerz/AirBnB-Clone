@@ -1,8 +1,11 @@
+import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from config import Config
+
+logger = logging.getLogger(__name__)
 
 
 def send_otp_email(email: str, code: str, purpose: str) -> bool:
@@ -27,5 +30,12 @@ def send_otp_email(email: str, code: str, purpose: str) -> bool:
             server.login(Config.SMTP_USER, Config.SMTP_PASS)
             server.sendmail(Config.SMTP_FROM, email, msg.as_string())
         return True
-    except Exception:
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error("SMTP auth failed for %s: %s", email, e)
+        return False
+    except smtplib.SMTPConnectError as e:
+        logger.error("SMTP connection failed for %s: %s", email, e)
+        return False
+    except Exception as e:
+        logger.error("Failed to send OTP email to %s: %s", email, e)
         return False
