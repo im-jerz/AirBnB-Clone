@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import BookingDocket from "../../components/booking/BookingDocket";
-import DocketSkeleton from "../../components/booking/DocketSkeleton";
+import { Outlet } from "react-router-dom";
+import BookingRow from "../../components/booking/BookingRow";
+import RowSkeleton from "../../components/booking/RowSkeleton";
 import BookingEmptyState from "../../components/booking/BookingEmptyState";
 import DeclineModal from "../../components/booking/DeclineModal";
 import CancelBookingModal from "../../components/booking/CancelBookingModal";
@@ -22,7 +23,11 @@ const HISTORY_TABS = [
 ];
 
 export default function Bookings() {
-  const { bookings, loading, error, approve, decline, cancel } = useBookingsData();
+  // useBookingsData lives here, once, and is shared down to the detail
+  // drawer (nested route) via Outlet context — so the list and the
+  // drawer always read/write the same in-memory booking state.
+  const bookingsData = useBookingsData();
+  const { bookings, loading, error, approve, decline, cancel } = bookingsData;
   const { push } = useToast();
 
   const [section, setSection] = useState("requests");
@@ -116,7 +121,7 @@ export default function Bookings() {
       </div>
 
       {loading ? (
-        <DocketSkeleton count={3} />
+        <RowSkeleton count={5} />
       ) : error ? (
         <div className="empty-state">
           <h3>Couldn't load your bookings</h3>
@@ -129,9 +134,9 @@ export default function Bookings() {
             message="New reservation requests will appear here. Make sure your listings are active so guests can book."
           />
         ) : (
-          <div className="docket-list">
+          <div className="booking-row-list">
             {pending.map((b) => (
-              <BookingDocket
+              <BookingRow
                 key={b.booking_id}
                 booking={b}
                 onApprove={handleApprove}
@@ -166,9 +171,9 @@ export default function Bookings() {
               message="No bookings yet. Make sure your listing is active to start receiving reservations."
             />
           ) : (
-            <div className="docket-list">
+            <div className="booking-row-list">
               {visibleHistory.map((b) => (
-                <BookingDocket
+                <BookingRow
                   key={b.booking_id}
                   booking={b}
                   onCancel={(booking) => setCancelTarget(booking)}
@@ -194,6 +199,11 @@ export default function Bookings() {
         onConfirm={handleCancelConfirm}
         onCancel={() => setCancelTarget(null)}
       />
+
+      {/* Detail drawer — nested route renders BookingDetail here as an
+          overlay when the URL is /dashboard/bookings/:id, sharing this
+          page's booking state via context instead of re-fetching. */}
+      <Outlet context={bookingsData} />
     </div>
   );
 }

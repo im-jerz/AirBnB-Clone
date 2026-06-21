@@ -127,8 +127,9 @@ function AuthRoutes() {
         <Route path="properties" element={<PropertyManagement />} />
         <Route path="properties/new" element={<AddEditProperty />} />
         <Route path="properties/:id/edit" element={<AddEditProperty />} />
-        <Route path="bookings" element={<Bookings />} />
-        <Route path="bookings/:id" element={<BookingDetail />} />
+        <Route path="bookings" element={<Bookings />}>
+          <Route path=":id" element={<BookingDetail />} />
+        </Route>
       </Route>
 
       {/* Anything unrecognized falls back to sign-in */}

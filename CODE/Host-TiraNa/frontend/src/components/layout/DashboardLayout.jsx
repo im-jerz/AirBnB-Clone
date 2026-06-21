@@ -24,7 +24,9 @@ function resolveMeta(pathname) {
     return { eyebrow: "Property Management", title: "Edit Property" };
   }
   if (pathname.startsWith("/dashboard/bookings/")) {
-    return { eyebrow: "Bookings", title: "Booking Detail" };
+    // Booking detail renders as a drawer over this same list page, so
+    // keep the topbar title stable instead of switching it underneath.
+    return PAGE_META["/dashboard/bookings"];
   }
   return { eyebrow: "", title: "Dashboard" };
 }
