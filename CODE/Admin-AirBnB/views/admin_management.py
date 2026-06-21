@@ -8,6 +8,7 @@ from views.components.sidebar import render_sidebar
 from views.components.master_detail import render_master_detail
 from utils.icons import user_icon, search_icon, svg_icon
 from utils.auth import require_admin
+from utils.constants import PAGE_SIZE
 
 
 def _render_admin_detail(admin_id: str) -> None:
@@ -131,7 +132,7 @@ def render(*, admin):
                 (AdminUser.email.ilike(f"%{search}%"))
             )
         total = query.count()
-        admins = query.order_by(AdminUser.created_at.desc()).offset((page - 1) * 20).limit(20).all()
+        admins = query.order_by(AdminUser.created_at.desc()).offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all()
 
         items = [
             {
@@ -155,6 +156,6 @@ def render(*, admin):
         no_items_message="No admins found.",
         total=total,
         page=page,
-        per_page=20,
+        per_page=PAGE_SIZE,
         page_state_key="admins_page",
     )

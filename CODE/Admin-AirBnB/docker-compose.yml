@@ -4,7 +4,7 @@ services:
     ports:
       - "8501:8501"
     environment:
-      DATABASE_URL: postgresql://user:password@postgres:5432/admin_airbnb
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       HOST_API_URL: http://host.docker.internal:5000
       HOST_API_KEY: your-api-key-here
       APP_ENV: development

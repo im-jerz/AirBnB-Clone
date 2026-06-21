@@ -23,7 +23,16 @@ def render(*, admin):
 
         def _get_value(key: str, default):
             s = settings_dict.get(key)
-            return s.value if s else default
+            if not s:
+                return default
+            try:
+                if isinstance(default, float):
+                    return float(s.value)
+                if isinstance(default, int):
+                    return int(s.value)
+            except (ValueError, TypeError):
+                return default
+            return s.value
 
         with tab_general:
             st.subheader("General Settings")
@@ -53,7 +62,7 @@ def render(*, admin):
                     "Commission Percentage (%)",
                     min_value=0.0,
                     max_value=100.0,
-                    value=float(_get_value("commission_percent", 10.0)),
+                    value=_get_value("commission_percent", 10.0),
                     step=0.5,
                 )
 
@@ -94,7 +103,7 @@ def render(*, admin):
                 )
                 smtp_port = st.number_input(
                     "SMTP Port",
-                    value=int(_get_value("smtp_port", 587)),
+                    value=_get_value("smtp_port", 587),
                     min_value=1,
                     max_value=65535,
                 )
@@ -122,7 +131,7 @@ def render(*, admin):
             with st.form("payout_settings"):
                 min_withdrawal = st.number_input(
                     "Minimum Withdrawal Amount (PHP)",
-                    value=float(_get_value("min_withdrawal_amount", 500.0)),
+                    value=_get_value("min_withdrawal_amount", 500.0),
                     min_value=0.0,
                 )
 
