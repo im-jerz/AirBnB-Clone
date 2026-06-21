@@ -1653,6 +1653,675 @@
 
 .builder-footer-actions { display: flex; gap: var(--space-3); }
 
+/* ════════════════════════════════════════════════════════════════
+   BOOKINGS MODULE
+   Signature element: the "reservation docket" — a stay's photo and
+   route info on one side, a perforated stub with the reference code
+   and primary action on the other, echoing a cloakroom/boarding-pass
+   ticket rather than a plain list row.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ─── Section Switch (Requests / My Bookings) ───────────────────── */
+
+.booking-section-switch {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.booking-section-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-1);
+  margin-right: var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: var(--color-text-secondary);
+  position: relative;
+  transition: color var(--transition-fast);
+}
+
+.booking-section-btn svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+.booking-section-btn::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: transparent;
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast);
+}
+
+.booking-section-btn:hover { color: var(--color-text-primary); }
+
+.booking-section-btn.active {
+  color: var(--color-primary);
+}
+
+.booking-section-btn.active::after { background: var(--color-accent); }
+
+.booking-section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: #2A2106;
+  font-size: 0.6875rem;
+  font-weight: 800;
+}
+
+/* ─── Docket List & Card ─────────────────────────────────────────── */
+
+.docket-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.docket {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base);
+}
+
+.docket:hover { box-shadow: var(--shadow-md); }
+
+.docket-pending {
+  border-color: rgba(201,168,76,0.45);
+}
+
+.docket-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.docket-photo {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--color-surface-alt);
+  overflow: hidden;
+}
+
+.docket-photo img { width: 100%; height: 100%; object-fit: cover; }
+
+.docket-body {
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.docket-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.docket-property {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.docket-property svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+.docket-guest-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.docket-guest-avatar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+.docket-guest-avatar.lg { width: 48px; height: 48px; font-size: var(--text-base); }
+
+.docket-guest-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.docket-guest-text strong {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.docket-guest-text span {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.docket-route {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px dashed var(--color-border);
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.docket-route-point {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.docket-route-point.align-end { align-items: flex-end; text-align: right; }
+
+.docket-route-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.docket-route-date {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.docket-route-line {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-accent-hover);
+  min-width: 0;
+}
+
+.docket-route-line svg { width: 16px; height: 16px; }
+
+.docket-route-line span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.docket-message {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-style: italic;
+  line-height: 1.5;
+  padding: var(--space-3);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-accent);
+}
+
+.docket-due {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-accent-hover);
+  font-weight: 600;
+}
+
+.docket-due svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* ─── Docket Stub (perforated ticket side) ───────────────────────── */
+
+.docket-stub {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-alt);
+  position: relative;
+}
+
+.docket-stub-perf {
+  position: relative;
+  height: 0;
+  border-top: 1.5px dashed var(--color-border);
+}
+
+.docket-stub-perf::before,
+.docket-stub-perf::after {
+  content: '';
+  position: absolute;
+  top: -7px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-bg);
+}
+
+.docket-stub-perf::before { left: -7px; }
+.docket-stub-perf::after { right: -7px; }
+
+.docket-stub-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  flex-wrap: wrap;
+}
+
+.docket-stub-ref,
+.docket-stub-price {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.docket-stub-ref span,
+.docket-stub-price span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.docket-stub-ref strong {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+}
+
+.docket-stub-price strong {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.docket-stub-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+/* ─── Booking Status Badge ────────────────────────────────────────── */
+
+.booking-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.booking-status-badge.sm { padding: 4px 9px; font-size: 0.6875rem; }
+
+.booking-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+.booking-status-badge.pending { background: rgba(201,168,76,0.16); color: var(--color-accent-hover); }
+.booking-status-badge.pending .booking-status-dot { background: var(--color-accent); }
+
+.booking-status-badge.confirmed { background: rgba(27,42,74,0.1); color: var(--color-primary); }
+.booking-status-badge.confirmed .booking-status-dot { background: var(--color-primary); }
+
+.booking-status-badge.in_progress { background: rgba(22,163,74,0.12); color: #15803D; }
+.booking-status-badge.in_progress .booking-status-dot { background: #16A34A; }
+
+.booking-status-badge.completed { background: rgba(75,85,99,0.12); color: #374151; }
+.booking-status-badge.completed .booking-status-dot { background: #6B7280; }
+
+.booking-status-badge.cancelled,
+.booking-status-badge.declined { background: var(--color-error-light); color: var(--color-error); }
+.booking-status-badge.cancelled .booking-status-dot,
+.booking-status-badge.declined .booking-status-dot { background: var(--color-error); }
+
+.booking-status-badge.disputed { background: #FFF7ED; color: #C2410C; }
+.booking-status-badge.disputed .booking-status-dot { background: #EA580C; }
+
+/* ─── Docket Skeleton ─────────────────────────────────────────────── */
+
+.docket-skel {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.docket-skel-photo { width: 100%; aspect-ratio: 16 / 9; }
+
+.docket-skel-body {
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.docket-skel-stub { height: 64px; }
+
+/* ─── Cancel Reason Radio List ────────────────────────────────────── */
+
+.cancel-reason-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cancel-reason-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.cancel-reason-option:hover { border-color: var(--color-primary-light); }
+
+.cancel-reason-option.selected {
+  border-color: var(--color-primary);
+  background: rgba(27,42,74,0.04);
+}
+
+.cancel-reason-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.price-summary-row.deduction { color: var(--color-error); font-size: var(--text-xs); }
+.price-summary-row.payout { font-weight: 800; color: var(--color-primary); border-top: 1px dashed var(--color-border); padding-top: var(--space-2); margin-top: var(--space-1); }
+
+/* ─── Booking Detail Page ─────────────────────────────────────────── */
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.detail-main,
+.detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.detail-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.detail-card-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+}
+
+.detail-property-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.detail-property-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.detail-property-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.detail-property-link {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  transition: color var(--transition-fast);
+}
+
+.detail-property-link:hover { color: var(--color-primary); }
+
+.detail-property-text span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.detail-property-text svg { width: 13px; height: 13px; }
+
+.detail-meta-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.detail-meta-strip span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.detail-meta-strip svg { width: 14px; height: 14px; color: var(--color-text-muted); }
+
+.detail-requests-text {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.65;
+}
+
+.detail-guest-block {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.detail-guest-block strong {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.detail-guest-since {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.detail-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.detail-contact-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-md);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.detail-contact-row:hover { color: var(--color-primary); background: rgba(27,42,74,0.06); }
+.detail-contact-row svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--color-text-muted); }
+
+.detail-contact-hidden {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-bottom: var(--space-4);
+}
+
+.detail-side-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ─── Status Timeline ─────────────────────────────────────────────── */
+
+.status-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-timeline-step {
+  display: flex;
+  gap: var(--space-4);
+  position: relative;
+  padding-bottom: var(--space-5);
+}
+
+.status-timeline-step:last-child { padding-bottom: 0; }
+
+.status-timeline-step::before {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 28px;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-border);
+}
+
+.status-timeline-step:last-child::before { display: none; }
+
+.status-timeline-step.done::before { background: var(--color-accent); }
+
+.status-timeline-marker {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  z-index: 1;
+}
+
+.status-timeline-marker svg { width: 14px; height: 14px; }
+
+.status-timeline-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+}
+
+.status-timeline-step.done .status-timeline-marker {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.status-timeline-step.current .status-timeline-marker {
+  background: var(--color-surface);
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+  box-shadow: 0 0 0 4px rgba(201,168,76,0.15);
+}
+
+.status-timeline-step.branch .status-timeline-marker.branch {
+  background: var(--color-error);
+  border-color: var(--color-error);
+  color: white;
+}
+
+.status-timeline-step.upcoming .status-timeline-marker {
+  border-style: dashed;
+}
+
+.status-timeline-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 3px;
+}
+
+.status-timeline-text strong {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.status-timeline-text span {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+
+
 /* ─── Responsive: Tablet (768px+) ────────────────────────────── */
 
 @media (min-width: 768px) {
@@ -1669,6 +2338,23 @@
   .amenity-grid { grid-template-columns: repeat(3, 1fr); }
   .photo-grid { grid-template-columns: repeat(3, 1fr); }
   .review-grid { grid-template-columns: repeat(3, 1fr); }
+
+  /* Bookings: docket goes horizontal — photo as a left rail instead of
+     a full-width top banner, stub moves to the right edge as a column. */
+  .docket-main { flex-direction: row; }
+  .docket-photo { width: 220px; aspect-ratio: auto; flex-shrink: 0; }
+  .docket-stub { width: 240px; flex-shrink: 0; }
+  .docket-stub-perf { width: 0; height: auto; align-self: stretch; border-top: none; border-left: 1.5px dashed var(--color-border); }
+  .docket-stub-perf::before { top: -7px; left: -7px; }
+  .docket-stub-perf::after { bottom: -7px; top: auto; left: -7px; }
+  .docket-stub-content { flex-direction: column; align-items: flex-start; height: 100%; }
+  .docket-stub-actions { margin-left: 0; margin-top: auto; width: 100%; flex-direction: column; }
+  .docket-stub-actions .btn-inline { width: 100%; }
+  .docket-skel { flex-direction: row; }
+  .docket-skel-photo { width: 220px; aspect-ratio: auto; flex-shrink: 0; }
+  .docket-skel-stub { width: 240px; height: auto; flex-shrink: 0; }
+
+  .detail-grid { grid-template-columns: 1.6fr 1fr; }
 }
 
 /* ─── Responsive: Laptop (1024px+) ───────────────────────────── */
@@ -1688,12 +2374,19 @@
   .property-grid { grid-template-columns: repeat(3, 1fr); }
   .builder-field-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
   .option-card-grid { grid-template-columns: repeat(3, 1fr); }
+
+  /* Bookings: requests get more breathing room — wider photo rail,
+     stub grows so reference/price/actions sit comfortably. */
+  .docket-photo { width: 260px; }
+  .docket-stub { width: 268px; }
+  .docket-body { padding: var(--space-5) var(--space-6); }
 }
 
 /* ─── Responsive: Desktop (1280px+) ──────────────────────────── */
 
 @media (min-width: 1280px) {
   .property-grid { grid-template-columns: repeat(4, 1fr); }
+  .detail-grid { grid-template-columns: 1.8fr 1fr; gap: var(--space-6); }
 }
 
 /* ─── Mobile only (<768px) ────────────────────────────────────── */
@@ -1707,6 +2400,13 @@
   .builder-progress-wrap { position: static; }
   .builder-panel { padding: var(--space-4); }
   .modal-actions { flex-direction: column-reverse; }
+
+  /* Bookings: stub actions and ref/price stack full-width for thumb reach */
+  .docket-stub-content { flex-direction: column; align-items: stretch; gap: var(--space-3); }
+  .docket-stub-actions { width: 100%; margin-left: 0; }
+  .docket-stub-actions .btn-inline { flex: 1; }
+  .booking-section-switch { gap: 0; }
+  .booking-section-btn { margin-right: var(--space-4); }
 }
 
 @media (prefers-reduced-motion: reduce) {

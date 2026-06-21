@@ -296,3 +296,65 @@ export const IconPaw = (p) => (
     <path d="M12 12c-3.3 0-5.5 2-5.5 4.3 0 1.8 1.5 3.2 3.4 3.2.9 0 1.5-.4 2.1-.4s1.2.4 2.1.4c1.9 0 3.4-1.4 3.4-3.2C17.5 14 15.3 12 12 12Z" />
   </svg>
 );
+
+export const IconPhone = (p) => (
+  <svg {...base} {...p}>
+    <path d="M5 4h3.2l1.3 4.2-2 1.5a12 12 0 0 0 5.8 5.8l1.5-2L19 14.8V18a1.5 1.5 0 0 1-1.6 1.5A15.5 15.5 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4Z" />
+  </svg>
+);
+
+export const IconMail = (p) => (
+  <svg {...base} {...p}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="m4 7 8 6 8-6" />
+  </svg>
+);
+
+export const IconClock = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3.5 2" />
+  </svg>
+);
+
+export const IconArrowRight = (p) => (
+  <svg {...base} {...p}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+);
+
+export const IconFlag = (p) => (
+  <svg {...base} {...p}>
+    <path d="M5 21V4" />
+    <path d="M5 4h11l-2.5 4L16 12H5" />
+  </svg>
+);
+
+export const IconFileText = (p) => (
+  <svg {...base} {...p}>
+    <path d="M7 3h7l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+    <path d="M14 3v4h4M9 12h6M9 16h6M9 8h2" />
+  </svg>
+);
+
+export const IconUserCircle = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="10" r="3" />
+    <path d="M6 18.5c1.2-2.3 3.3-3.5 6-3.5s4.8 1.2 6 3.5" />
+  </svg>
+);
+
+export const IconDownload = (p) => (
+  <svg {...base} {...p}>
+    <path d="M12 4v12M8 12l4 4 4-4" />
+    <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+  </svg>
+);
+
+export const IconReceipt = (p) => (
+  <svg {...base} {...p}>
+    <path d="M6 3h12v18l-2.5-1.5L13 21l-1-1.5L11 21l-2.5-1.5L6 21Z" />
+    <path d="M9 8h6M9 12h6M9 16h3" />
+  </svg>
+);

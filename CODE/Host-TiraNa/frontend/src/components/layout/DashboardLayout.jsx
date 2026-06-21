@@ -23,6 +23,9 @@ function resolveMeta(pathname) {
   if (pathname.startsWith("/dashboard/properties/")) {
     return { eyebrow: "Property Management", title: "Edit Property" };
   }
+  if (pathname.startsWith("/dashboard/bookings/")) {
+    return { eyebrow: "Bookings", title: "Booking Detail" };
+  }
   return { eyebrow: "", title: "Dashboard" };
 }
 
