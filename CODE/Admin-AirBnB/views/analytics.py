@@ -181,7 +181,7 @@ def _render_reports():
             total_bookings = db.query(BookingCache).count()
             completed = db.query(BookingCache).filter(BookingCache.status == "completed").count()
             total_revenue = db.query(func.sum(PaymentCache.amount)).filter(PaymentCache.status == "completed").scalar() or 0
-            total_users = db.query(func.count()).select_from(BookingCache.distinct()).scalar() or 0
+            unique_guests = db.query(BookingCache.guest_id).distinct().count()
 
             report_data = pd.DataFrame({
                 "Metric": ["Total Bookings", "Completed Bookings", "Completion Rate", "Total Revenue", "Avg Revenue per Booking"],
