@@ -93,14 +93,14 @@ function Hero() {
   function handleSearch(e) {
     e.preventDefault()
     if (search.trim()) {
-      navigate(`/rooms?location=${encodeURIComponent(search.trim())}`)
+      navigate(`/properties?location=${encodeURIComponent(search.trim())}`)
     }
   }
 
   function handleSuggestionClick(location) {
     setSearch(location)
     setShowSuggestions(false)
-    navigate(`/rooms?location=${encodeURIComponent(location)}`)
+    navigate(`/properties?location=${encodeURIComponent(location)}`)
   }
 
   const filteredSuggestions = search.trim()

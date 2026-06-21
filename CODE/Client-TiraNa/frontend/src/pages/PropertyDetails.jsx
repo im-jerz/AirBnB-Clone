@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { fetchListingDetail, fetchListings } from '../api/listings.js'
 
 function StarIcon({ className }) {
   return (
@@ -139,249 +140,6 @@ function CalendarIcon({ className }) {
   )
 }
 
-const roomDetails = {
-  1: {
-    title: 'Transient House sa Baguio',
-    location: 'Baguio, Benguet',
-    rating: 4.8,
-    reviewsCount: 124,
-    superhost: true,
-    host: { name: 'Maria Santos', avatar: 'https://randomuser.me/api/portraits/women/44.jpg', joined: '2019' },
-    highlights: { guests: 2, bedrooms: 1, beds: 1, baths: 1, type: 'Entire apartment' },
-    description: 'Matatagpuan sa gitna ng Baguio, ang maaliwalas na transient house na ito ay perpekto para sa magkasintahan o solo travelers. Mag-enjoy sa preskong hangin ng Baguio habang nagkakape sa balkonahe. Malapit sa Burnham Park, Session Road, at sa mga sikat na kainan sa lungsod. May sariling kusina at mainit na shower para sa komportableng pamamalagi.',
-    price: 1890,
-    images: [
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800&h=600&fit=crop',
-    ],
-    amenities: ['Wifi', 'Kitchen', 'Washer', 'Air conditioning', 'Heater', 'TV', 'Hair dryer', 'Iron', 'Essentials', 'Hangers'],
-    reviews: [
-      { id: 1, name: 'Angela Cruz', avatar: 'https://randomuser.me/api/portraits/women/65.jpg', date: 'May 2024', text: 'Sobrang ganda ng transient house! Malinis at maaliwalas. Malapit sa lahat — Burnham Park, Session Road, at mga restaurant. Si Maria ay napaka-responsive at mabait na host.', rating: 5 },
-      { id: 2, name: 'Benito Reyes', avatar: 'https://randomuser.me/api/portraits/men/32.jpg', date: 'April 2024', text: 'Perpekto para sa weekend getaway! Ang sarap ng malamig na panahon ng Baguio. Maayos ang kama at may mainit na shower. Babalik kami dito!', rating: 5 },
-      { id: 3, name: 'Karla Mendoza', avatar: 'https://randomuser.me/api/portraits/women/90.jpg', date: 'March 2024', text: 'Napaka-cozy ng lugar. Kumpleto ang gamit sa kusina at malinis ang buong bahay. Maganda ang location — malapit sa lahat ng tourist spots.', rating: 4 },
-    ],
-    ratingBreakdown: { cleanliness: 4.9, accuracy: 4.8, communication: 5.0, location: 4.7, checkIn: 4.9, value: 4.6 },
-    cleaningFee: 250,
-    serviceFee: 150,
-  },
-  2: {
-    title: 'Beachfront Cottage sa Siargao',
-    location: 'Siargao, Surigao del Norte',
-    rating: 4.9,
-    reviewsCount: 98,
-    superhost: true,
-    host: { name: 'Juan dela Cruz', avatar: 'https://randomuser.me/api/portraits/men/46.jpg', joined: '2020' },
-    highlights: { guests: 3, bedrooms: 1, beds: 2, baths: 1, type: 'Entire cottage' },
-    description: 'Isang magandang beachfront cottage sa Siargao na may tanawin ng Karagatang Pasipiko. Dahil sikat ang Siargao sa surfing, malapit ito sa Cloud 9 boardwalk. May sariling kusina, outdoor shower, at terrace na may duyan. Perpekto para sa mga mahihilig sa dagat, alon, at tropikal na pamumuhay.',
-    price: 1720,
-    images: [
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&h=600&fit=crop',
-    ],
-    amenities: ['Wifi', 'Kitchen', 'Air conditioning', 'Ceiling fan', 'TV', 'Washer', 'Outdoor shower', 'Essentials', 'Shampoo', 'Hammock'],
-    reviews: [
-      { id: 1, name: 'Mia Gonzales', avatar: 'https://randomuser.me/api/portraits/women/23.jpg', date: 'May 2024', text: 'Ang ganda ng cottage! Direkta sa beach ang labas, at ang ganda ng sunset. Si Juan ay napaka-welcoming at nagbigay ng tips sa mga magagandang surf spot.', rating: 5 },
-      { id: 2, name: 'Carlos Villanueva', avatar: 'https://randomuser.me/api/portraits/men/75.jpg', date: 'April 2024', text: 'Perpektong perpekto para sa surfing trip! Malapit sa Cloud 9 at iba pang surf spots. Maayos ang kama at malinis ang buong place.', rating: 5 },
-      { id: 3, name: 'Bianca Ramos', avatar: 'https://randomuser.me/api/portraits/women/50.jpg', date: 'February 2024', text: 'Tunay na paraiso! Ang outdoor shower at duyan ang favorite namin. Tahimik at presko kahit mainit ang panahon. Babalik kami!', rating: 5 },
-    ],
-    ratingBreakdown: { cleanliness: 5.0, accuracy: 4.9, communication: 4.8, location: 5.0, checkIn: 4.9, value: 4.7 },
-    cleaningFee: 300,
-    serviceFee: 180,
-  },
-  3: {
-    title: 'City Condo sa Cebu',
-    location: 'Cebu City, Cebu',
-    rating: 4.7,
-    reviewsCount: 215,
-    superhost: false,
-    host: { name: 'Carlo Reyes', avatar: 'https://randomuser.me/api/portraits/men/22.jpg', joined: '2018' },
-    highlights: { guests: 4, bedrooms: 2, beds: 2, baths: 2, type: 'Entire condo' },
-    description: 'Isang moderno at maluwag na condo sa puso ng Cebu City. Malapit sa Cebu IT Park, Ayala Center Cebu, at mga sikat na restaurant. May dalawang silid-tulugan, fully equipped kitchen, at malaking living area na may skyline view ng lungsod. Perpekto para sa mga pamilya o grupo ng magkakaibigan na gustong mag-explore ng Cebu.',
-    price: 3495,
-    images: [
-      'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
-    ],
-    amenities: ['Wifi', 'Kitchen', 'Air conditioning', 'Ceiling fan', 'TV', 'Gym', 'Elevator', 'Pool', 'Essentials', 'Hair dryer'],
-    reviews: [
-      { id: 1, name: 'Diana Mercado', avatar: 'https://randomuser.me/api/portraits/women/33.jpg', date: 'May 2024', text: 'Napakaganda ng condo! Malinis, maluwag, at maganda ang location. Malapit sa mga mall at restaurant. Si Carlo ay napaka- accomodating at mabilis mag-reply.', rating: 5 },
-      { id: 2, name: 'Rafael Tan', avatar: 'https://randomuser.me/api/portraits/men/55.jpg', date: 'March 2024', text: 'Magandang lugar para mag-explore ng Cebu. Malapit sa IT Park at Ayala. May pool at gym pa sa building. Sulit na sulit!', rating: 4 },
-      { id: 3, name: 'Liza Morales', avatar: 'https://randomuser.me/api/portraits/women/68.jpg', date: 'January 2024', text: 'Napaka-komportable ng condo. Kumpleto ang gamit sa kusina at maluluwag ang mga kwarto. Medyo maingay sa gabi pero okay naman overall.', rating: 4 },
-    ],
-    ratingBreakdown: { cleanliness: 4.8, accuracy: 4.7, communication: 4.6, location: 4.9, checkIn: 4.8, value: 4.3 },
-    cleaningFee: 500,
-    serviceFee: 350,
-  },
-  4: {
-    title: 'Beachfront Villa sa Palawan',
-    location: 'El Nido, Palawan',
-    rating: 4.9,
-    reviewsCount: 87,
-    superhost: true,
-    host: { name: 'Angela Villanueva', avatar: 'https://randomuser.me/api/portraits/women/15.jpg', joined: '2021' },
-    highlights: { guests: 6, bedrooms: 3, beds: 4, baths: 2, type: 'Entire villa' },
-    description: 'Gumising sa tunog ng alon sa napakagandang beachfront villa sa El Nido, Palawan. Napapaligiran ng mga limestone cliff at malinaw na tubig-dagat. May sariling infinity pool, open-plan living area, at terrace na tanaw ang mga sikat na island hopping spot ng Palawan. Perpekto para sa malaking pamilya o grupo ng magkakaibigan.',
-    price: 4120,
-    images: [
-      'https://images.unsplash.com/photo-1499793983690-e29ba59ef1c2?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
-    ],
-    amenities: ['Wifi', 'Kitchen', 'Pool', 'Air conditioning', 'TV', 'Free parking', 'Garden', 'Essentials', 'Shampoo', 'Kayak'],
-    reviews: [
-      { id: 1, name: 'Nestor Aquino', avatar: 'https://randomuser.me/api/portraits/men/42.jpg', date: 'April 2024', text: 'Paraiso! Ang ganda ng villa — sobrang lapit sa beach at ang linaw ng tubig. Si Angela ay napaka-butihing host. Ang infinity pool ay panalo!', rating: 5 },
-      { id: 2, name: 'Grace Lopez', avatar: 'https://randomuser.me/api/portraits/women/42.jpg', date: 'March 2024', text: 'Hindi makapaniwala sa ganda ng El Nido! Ang villa ay sobrang luxurious at kumpleto sa lahat. Ang sunset view ay hindi malilimutan.', rating: 5 },
-      { id: 3, name: 'Patrick Uy', avatar: 'https://randomuser.me/api/portraits/men/67.jpg', date: 'January 2024', text: 'Sulit na sulit ang bawat piso! Ang ganda ng location — malapit sa mga island hopping tours. Ang sarap ng pagkain na inihanda ng private chef.', rating: 5 },
-    ],
-    ratingBreakdown: { cleanliness: 4.9, accuracy: 5.0, communication: 4.9, location: 5.0, checkIn: 4.8, value: 4.9 },
-    cleaningFee: 600,
-    serviceFee: 400,
-  },
-  5: {
-    title: 'Heritage House sa Vigan',
-    location: 'Vigan, Ilocos Sur',
-    rating: 4.6,
-    reviewsCount: 156,
-    superhost: false,
-    host: { name: 'Miguel Tan', avatar: 'https://randomuser.me/api/portraits/men/35.jpg', joined: '2017' },
-    highlights: { guests: 4, bedrooms: 2, beds: 2, baths: 1, type: 'Entire house' },
-    description: 'Isang magandang heritage house sa Vigan, isang UNESCO World Heritage City. Ang bahay ay may Spanish colonial architecture na may capiz shell windows, antique furnitures, at courtyard garden. Nasa mismong Calle Crisologo ito, kung saan makikita ang mga makasaysayang gusali, horse-drawn kalesa, at sikat na ilocos empanada at bagnet.',
-    price: 2610,
-    images: [
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&h=600&fit=crop',
-    ],
-    amenities: ['Wifi', 'Kitchen', 'Ceiling fan', 'TV', 'Washer', 'Essentials', 'Hair dryer', 'Iron', 'Hangers', 'Smoke alarm'],
-    reviews: [
-      { id: 1, name: 'Jasmine Fernandez', avatar: 'https://randomuser.me/api/portraits/women/28.jpg', date: 'May 2024', text: 'Ang ganda ng heritage house! Para kaming bumalik sa panahon ng Spanish era. Ang ganda ng Calle Crisologo sa gabi. Si Miguel ay napaka-ga-guideng host.', rating: 5 },
-      { id: 2, name: 'Rico Salvador', avatar: 'https://randomuser.me/api/portraits/men/28.jpg', date: 'April 2024', text: 'Napaka-kultural na experience! Ang bahay ay puno ng history at character. Malapit sa lahat ng tourist spots sa Vigan. Try niyo ang empanada sa kanto!', rating: 4 },
-      { id: 3, name: 'Tina Manalo', avatar: 'https://randomuser.me/api/portraits/women/12.jpg', date: 'February 2024', text: 'Magandang lugar para sa history buffs. Ang ganda ng courtyard at ng mga antique furniture. Medyo luma na ang ibang gamit pero parte ng charm ng bahay.', rating: 4 },
-    ],
-    ratingBreakdown: { cleanliness: 4.7, accuracy: 4.6, communication: 4.8, location: 4.9, checkIn: 4.7, value: 4.4 },
-    cleaningFee: 400,
-    serviceFee: 250,
-  },
-  6: {
-    title: 'Bayview Penthouse sa Manila',
-    location: 'Manila, Philippines',
-    rating: 4.8,
-    reviewsCount: 73,
-    superhost: true,
-    host: { name: 'Marco Rodriguez', avatar: 'https://randomuser.me/api/portraits/men/52.jpg', joined: '2020' },
-    highlights: { guests: 5, bedrooms: 2, beds: 3, baths: 2, type: 'Entire penthouse' },
-    description: 'Isang marangyang penthouse sa may Manila Bay na may 360-degree view ng skyline at sikat na Manila Bay sunset. Malapit sa SM Mall of Asia, CCP Complex, at mga fine dining restaurant. May dalawang ensuite bedrooms, gourmet kitchen, at malaking terrace na perpekto para sa mga party o family gatherings.',
-    price: 3965,
-    images: [
-      'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800&h=600&fit=crop',
-    ],
-    amenities: ['Wifi', 'Kitchen', 'Air conditioning', 'TV', 'Washer', 'Pool', 'Gym', 'Parking', 'Elevator', 'Essentials'],
-    reviews: [
-      { id: 1, name: 'Sofia Alcantara', avatar: 'https://randomuser.me/api/portraits/women/41.jpg', date: 'April 2024', text: 'Ang ganda ng sunset view sa Manila Bay! Sobrang sulit ng penthouse — maluwag, malinis, at napaka-classy. Si Marco ay isang mahusay na host.', rating: 5 },
-      { id: 2, name: 'Dexter Lim', avatar: 'https://randomuser.me/api/portraits/men/28.jpg', date: 'March 2024', text: 'Best place to stay in Manila! Malapit sa MOA at iba pang attractions. Ang ganda ng terrace lalo na sa gabi. Maayos at maaliwalas ang lahat.', rating: 5 },
-      { id: 3, name: 'Rosa Santiago', avatar: 'https://randomuser.me/api/portraits/women/56.jpg', date: 'January 2024', text: 'Sobrang luxurious! Lahat ng detalye pinag-isipan. Ang ganda ng view ng city lights mula sa terrace. Siguradong babalik kami!', rating: 4 },
-    ],
-    ratingBreakdown: { cleanliness: 4.9, accuracy: 4.8, communication: 5.0, location: 5.0, checkIn: 4.9, value: 4.5 },
-    cleaningFee: 700,
-    serviceFee: 400,
-  },
-  7: {
-    title: 'Kamalig sa Tagaytay',
-    location: 'Tagaytay, Cavite',
-    rating: 4.5,
-    reviewsCount: 42,
-    superhost: false,
-    host: { name: 'Elena Cruz', avatar: 'https://randomuser.me/api/portraits/women/82.jpg', joined: '2022' },
-    highlights: { guests: 2, bedrooms: 1, beds: 1, baths: 1, type: 'Entire house' },
-    description: 'Isang maaliwalas na kamalig sa Tagaytay na may tanawin ng Taal Volcano. Presko ang hangin at tahimik ang paligid — perpekto para sa magkasintahan na naghahanap ng romantic weekend getaway. May sariling garden, outdoor seating area, at BBQ grill. Malapit sa mga sikat na restaurant at viewpoint ng Tagaytay.',
-    price: 1855,
-    images: [
-      'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
-    ],
-    amenities: ['Wifi', 'Kitchen', 'Ceiling fan', 'TV', 'Free parking', 'Garden', 'BBQ grill', 'Essentials'],
-    reviews: [
-      { id: 1, name: 'Pamela Cortez', avatar: 'https://randomuser.me/api/portraits/women/36.jpg', date: 'May 2024', text: 'Ang cozy ng kamalig! Sobrang presko ng hangin at maganda ang view ng Taal. Si Elena ay napaka-hospitable. Perfect para sa magkasintahan!', rating: 5 },
-      { id: 2, name: 'George de Leon', avatar: 'https://randomuser.me/api/portraits/men/18.jpg', date: 'April 2024', text: 'Tahimik at presko — exactly what we needed. Ang ganda ng garden at ng BBQ area. Malapit sa Sky Ranch at sa mga viewpoint.', rating: 4 },
-    ],
-    ratingBreakdown: { cleanliness: 4.6, accuracy: 4.5, communication: 4.7, location: 4.3, checkIn: 4.8, value: 4.7 },
-    cleaningFee: 250,
-    serviceFee: 150,
-  },
-  8: {
-    title: 'Studio Unit sa Makati',
-    location: 'Makati, Metro Manila',
-    rating: 4.3,
-    reviewsCount: 67,
-    superhost: false,
-    host: { name: 'Paolo Gonzalez', avatar: 'https://randomuser.me/api/portraits/men/62.jpg', joined: '2021' },
-    highlights: { guests: 3, bedrooms: 1, beds: 2, baths: 1, type: 'Entire apartment' },
-    description: 'Isang modernong studio unit sa gitna ng Makati CBD. Malapit sa Ayala Triangle, Greenbelt, at mga BPO offices. May sariling kitchen, dining area, at smart TV. Mainam para sa mga business travelers o magkakaibigan na gustong mag-stay sa may puso ng Makati. Malapit sa MRT at bus stations.',
-    price: 1968,
-    images: [
-      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&h=600&fit=crop',
-    ],
-    amenities: ['Wifi', 'Kitchen', 'Air conditioning', 'Ceiling fan', 'TV', 'Washer', 'Elevator', 'Essentials'],
-    reviews: [
-      { id: 1, name: 'Vicky Suarez', avatar: 'https://randomuser.me/api/portraits/women/93.jpg', date: 'May 2024', text: 'Magandang location sa Makati! Malapit sa Greenbelt at sa office namin. Si Paolo ay responsive at madali kausap. Maayos at malinis ang unit.', rating: 4 },
-      { id: 2, name: 'Ramon Torres', avatar: 'https://randomuser.me/api/portraits/men/48.jpg', date: 'March 2024', text: 'Perfect for business trips! Malapit sa Ayala at sa MRT. Kumpleto ang gamit at maaliwalas ang studio. Sulit na sulit!', rating: 4 },
-    ],
-    ratingBreakdown: { cleanliness: 4.5, accuracy: 4.3, communication: 4.6, location: 4.7, checkIn: 4.5, value: 4.4 },
-    cleaningFee: 300,
-    serviceFee: 200,
-  },
-  9: {
-    title: 'Riverside Cabin sa Antipolo',
-    location: 'Antipolo, Rizal',
-    rating: 4.7,
-    reviewsCount: 55,
-    superhost: true,
-    host: { name: 'Isabel Ramos', avatar: 'https://randomuser.me/api/portraits/women/18.jpg', joined: '2019' },
-    highlights: { guests: 4, bedrooms: 2, beds: 3, baths: 1, type: 'Entire home' },
-    description: 'Isang tahimik na riverside cabin sa Antipolo, Rizal. Napapaligiran ng mga puno at halaman, perpekto para sa mga gustong tumakas sa ingay ng lungsod. May deck na tanaw ang ilog, garden, at BBQ area. Mahangin at presko ang hangin. Malapit sa Hinulugang Taktak at sa mga sikat na simbahan ng Antipolo.',
-    price: 1982,
-    images: [
-      'https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
-    ],
-    amenities: ['Wifi', 'Kitchen', 'Washer', 'Ceiling fan', 'TV', 'Free parking', 'Garden', 'BBQ grill', 'Hammock', 'Essentials'],
-    reviews: [
-      { id: 1, name: 'Lorna Bernardo', avatar: 'https://randomuser.me/api/portraits/women/72.jpg', date: 'April 2024', text: 'Ang gandang cabin! Tahimik at presko — perfect for family bonding. Ang ganda ng river view at nag-enjoy kami sa BBQ sa garden. Si Isabel ay sobrang bait!', rating: 5 },
-      { id: 2, name: 'Felipe Manalang', avatar: 'https://randomuser.me/api/portraits/men/83.jpg', date: 'February 2024', text: 'Perfect na weekend getaway! Ang sarap ng hangin sa Antipolo. Ang deck overlooking the river ang paborito namin. Magluluto lang kayo, kompleto ang gamit sa kusina.', rating: 5 },
-    ],
-    ratingBreakdown: { cleanliness: 4.8, accuracy: 4.7, communication: 4.9, location: 4.6, checkIn: 4.8, value: 4.7 },
-    cleaningFee: 350,
-    serviceFee: 200,
-  },
-}
-
 const ratingLabels = {
   cleanliness: 'Cleanliness',
   accuracy: 'Accuracy',
@@ -490,12 +248,14 @@ function PhotoGallery({ images }) {
   )
 }
 
-function GuestPicker({ guests, setGuests, onClose }) {
+function GuestPicker({ guests, setGuests, onClose, maxGuests }) {
   function update(type, delta) {
     setGuests(prev => {
       const next = { ...prev }
       next[type] = Math.max(0, prev[type] + delta)
       if (type === 'adults' && next.adults < 1) next.adults = 1
+      const total = next.adults + next.children
+      if (total > maxGuests) return prev
       return next
     })
   }
@@ -610,7 +370,7 @@ function BookingCard({ room }) {
   return (
     <div className="bg-white border border-gray-200 shadow-lg p-6 rounded">
       <div className="flex items-baseline gap-1 mb-5">
-        <span className="text-2xl font-bold text-charcoal">&#x20B1;{room.price}</span>
+        <span className="text-2xl font-bold text-charcoal">₱{room.price}</span>
         <span className="text-sm text-gray-500">/ night</span>
       </div>
 
@@ -652,12 +412,12 @@ function BookingCard({ room }) {
           >
             <div className="text-left">
               <span className="text-xs font-bold text-charcoal uppercase tracking-wider block mb-0.5">Guests</span>
-              <span className="text-gray-600">{totalGuests} guest{totalGuests !== 1 ? 's' : ''}{guests.infants > 0 ? `, ${guests.infants} infant${guests.infants > 1 ? 's' : ''}` : ''}</span>
+              <span className="text-gray-600">{totalGuests} guest{totalGuests !== 1 ? 's' : ''}{guests.infants > 0 ? `, ${guests.infants} infant${guests.infants > 1 ? 's' : ''}` : ''} · max {room.highlights.guests}</span>
             </div>
             <ChevronDownIcon className={`w-5 h-5 text-gray-400 transition-transform ${showGuestPicker ? 'rotate-180' : ''}`} />
           </button>
           {showGuestPicker && (
-            <GuestPicker guests={guests} setGuests={setGuests} onClose={() => setShowGuestPicker(false)} />
+            <GuestPicker guests={guests} setGuests={setGuests} onClose={() => setShowGuestPicker(false)} maxGuests={room.highlights.guests} />
           )}
         </div>
       </div>
@@ -665,16 +425,16 @@ function BookingCard({ room }) {
       {nights > 0 && (
         <div className="space-y-2 mb-4 pb-4 border-b border-gray-200">
           <div className="flex justify-between text-sm text-gray-600">
-            <span>&#x20B1;{room.price} x {nights} night{nights > 1 ? 's' : ''}</span>
-            <span>&#x20B1;{subtotal.toLocaleString()}</span>
+            <span>₱{room.price} x {nights} night{nights > 1 ? 's' : ''}</span>
+            <span>₱{subtotal.toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-sm text-gray-600">
             <span>Cleaning fee</span>
-            <span>&#x20B1;{room.cleaningFee.toLocaleString()}</span>
+            <span>₱{room.cleaningFee.toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-sm text-gray-600">
             <span>Service fee</span>
-            <span>&#x20B1;{room.serviceFee.toLocaleString()}</span>
+            <span>₱{room.serviceFee.toLocaleString()}</span>
           </div>
         </div>
       )}
@@ -682,7 +442,7 @@ function BookingCard({ room }) {
       <div className="flex justify-between items-center mb-5">
         <span className="text-base font-bold text-charcoal">Total</span>
         <span className="text-base font-bold text-charcoal">
-          {nights > 0 ? `&#x20B1;${total.toLocaleString()}` : '&#x2014;'}
+          {nights > 0 ? `₱${total.toLocaleString()}` : '—'}
         </span>
       </div>
 
@@ -698,9 +458,12 @@ function BookingCard({ room }) {
   )
 }
 
-function RoomDetails() {
+function PropertyDetails() {
   const { id } = useParams()
-  const room = roomDetails[id]
+  const [room, setRoom] = useState(null)
+  const [similarRooms, setSimilarRooms] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [saved, setSaved] = useState(false)
   const [showAllAmenities, setShowAllAmenities] = useState(false)
 
@@ -708,15 +471,67 @@ function RoomDetails() {
     window.scrollTo(0, 0)
   }, [])
 
-  if (!room) {
+  useEffect(() => {
+    setLoading(true)
+    setError(false)
+    fetchListingDetail(id)
+      .then((data) => {
+        setRoom(data)
+        return fetchListings()
+      })
+      .then((allListings) => {
+        setSimilarRooms(allListings.filter(r => r.id !== Number(id)).slice(0, 3))
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-3 text-sm font-medium text-charcoal hover:text-sage transition-colors">
+              <ArrowLeftIcon className="w-5 h-5" />
+              <span className="hidden sm:inline">Back</span>
+            </Link>
+            <Link to="/" className="text-lg font-bold tracking-widest uppercase text-teal">TiraNa</Link>
+            <div className="w-20" />
+          </div>
+        </header>
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 rounded-lg overflow-hidden max-h-[70vh] animate-pulse">
+            <div className="md:col-span-2 md:row-span-2 bg-gray-200 min-h-[300px]" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-gray-200 min-h-[150px] hidden md:block" />
+            ))}
+          </div>
+        </section>
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
+          <div className="lg:grid lg:grid-cols-[1fr_380px] lg:gap-12">
+            <div className="space-y-5 animate-pulse">
+              <div className="h-8 bg-gray-200 w-3/4" />
+              <div className="h-4 bg-gray-200 w-1/2" />
+              <div className="h-4 bg-gray-200 w-1/3" />
+              <div className="h-32 bg-gray-200 w-full" />
+              <div className="h-4 bg-gray-200 w-full" />
+              <div className="h-4 bg-gray-200 w-5/6" />
+            </div>
+          </div>
+        </section>
+      </div>
+    )
+  }
+
+  if (error || !room) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
             <HomeIcon className="w-10 h-10 text-gray-300" />
           </div>
-          <h1 className="text-2xl font-bold text-charcoal mb-3">Room Not Found</h1>
-          <p className="text-sm text-gray-500 mb-6">The room you're looking for doesn't exist or has been removed.</p>
+          <h1 className="text-2xl font-bold text-charcoal mb-3">Property Not Found</h1>
+          <p className="text-sm text-gray-500 mb-6">The property you're looking for doesn't exist or has been removed.</p>
           <Link
             to="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-sage text-white font-medium uppercase tracking-wider text-sm hover:bg-olive transition-colors"
@@ -728,10 +543,6 @@ function RoomDetails() {
       </div>
     )
   }
-
-  const similarRooms = Object.values(roomDetails)
-    .filter(r => r.title !== room.title)
-    .slice(0, 3)
 
   const amenityKeys = Object.keys(amenityIcons)
   const roomAmenities = room.amenities.map(a => ({
@@ -940,23 +751,23 @@ function RoomDetails() {
 
       <section className="bg-gray-50 py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-8">Similar rooms you might like</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-8">Similar properties you might like</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {similarRooms.map((r) => (
+              {similarRooms.map((r) => (
               <Link
-                key={r.title}
-                to={`/rooms/${Object.entries(roomDetails).find(([, v]) => v.title === r.title)?.[0]}`}
+                key={r.id}
+                to={`/properties/${r.id}`}
                 className="group bg-white shadow-sm hover:shadow-lg transition-shadow duration-300"
               >
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={r.images[0]}
+                    src={r.image}
                     alt={r.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
                   <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 text-xs font-bold text-charcoal">
-                    &#x20B1;{r.price} <span className="font-normal text-gray-500">/ night</span>
+                    ₱{r.price} <span className="font-normal text-gray-500">/ night</span>
                   </div>
                 </div>
                 <div className="p-4 sm:p-5">
@@ -969,7 +780,7 @@ function RoomDetails() {
                   </div>
                   <p className="text-xs sm:text-sm text-gray-500 mb-3">{r.location}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-teal">&#x20B1;{r.price}<span className="text-xs font-normal text-gray-400">/night</span></span>
+                    <span className="text-sm font-semibold text-teal">₱{r.price}<span className="text-xs font-normal text-gray-400">/night</span></span>
                     <span className="text-xs font-medium text-olive group-hover:underline">View Details</span>
                   </div>
                 </div>
@@ -1026,7 +837,7 @@ function RoomDetails() {
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div>
             <div className="flex items-baseline gap-1">
-              <span className="text-lg font-bold text-charcoal">&#x20B1;{room.price}</span>
+              <span className="text-lg font-bold text-charcoal">₱{room.price}</span>
               <span className="text-xs text-gray-500">/ night</span>
             </div>
             <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -1048,4 +859,4 @@ function RoomDetails() {
   )
 }
 
-export default RoomDetails
+export default PropertyDetails

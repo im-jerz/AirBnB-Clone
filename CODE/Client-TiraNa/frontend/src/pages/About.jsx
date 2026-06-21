@@ -4,7 +4,7 @@ import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 
 const stats = [
-  { label: 'Available Rooms', value: '20+' },
+  { label: 'Available Properties', value: '20+' },
   { label: 'Happy Guests', value: '50+' },
   { label: 'Verified Hosts', value: '15+' },
   { label: 'Cities Covered', value: '10+' },
@@ -13,7 +13,7 @@ const stats = [
 const values = [
   {
     title: 'For Hosts',
-    description: 'List your room or house easily and start earning. Set your own price, availability, and house rules.',
+    description: 'List your property easily and start earning. Set your own price, availability, and house rules.',
     icon: (
       <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -22,7 +22,7 @@ const values = [
   },
   {
     title: 'For Guests',
-    description: 'Browse and book unique stays from cozy rooms to entire houses. Filter by location, price, and amenities.',
+    description: 'Browse and book unique stays from cozy studios to entire houses. Filter by location, price, and amenities.',
     icon: (
       <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -53,7 +53,7 @@ const howItWorks = [
   {
     step: '01',
     title: 'Browse Listings',
-    description: 'Explore available rooms and houses. Use filters to find the perfect match for your needs and budget.',
+    description: 'Explore available properties. Use filters to find the perfect match for your needs and budget.',
     color: 'bg-sage',
   },
   {
@@ -65,7 +65,7 @@ const howItWorks = [
   {
     step: '03',
     title: 'Host Your Property',
-    description: 'List your own room or house. Set your price, upload photos, and start accepting guests in minutes.',
+    description: 'List your own property. Set your price, upload photos, and start accepting guests in minutes.',
     color: 'bg-olive',
   },
 ]
@@ -93,7 +93,7 @@ function About() {
               About TiraNa
             </h1>
             <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed animate-fade-up" style={{ animationDelay: '0.2s' }}>
-              TiraNa is a platform where homeowners can list their rooms and houses, and travelers can find the perfect place to stay.
+              TiraNa is a platform where homeowners can list their properties, and travelers can find the perfect place to stay.
             </p>
           </div>
         </div>
@@ -106,7 +106,7 @@ function About() {
               <span className="text-xs font-semibold uppercase tracking-widest text-sage">About the Platform</span>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-charcoal mt-3 mb-4">List Your Space, Find Your Stay</h2>
               <p className="text-sm sm:text-base text-gray-500 leading-relaxed mb-4">
-                TiraNa is a full-featured accommodation marketplace built for everyone. Whether you have a spare room, an entire house, or you&apos;re looking for a place to stay, our platform makes it easy to connect hosts with travelers.
+                TiraNa is a full-featured accommodation marketplace built for everyone. Whether you have a spare space or an entire house, or you&apos;re looking for a place to stay, our platform makes it easy to connect hosts with travelers.
               </p>
               <p className="text-sm sm:text-base text-gray-500 leading-relaxed mb-4">
                 Hosts can list their properties with photos, pricing, and availability — then manage bookings directly through their dashboard. Guests can browse listings, compare options, and reserve their ideal stay with just a few clicks.
@@ -194,7 +194,7 @@ function About() {
           <div className="text-center mb-12 sm:mb-16">
             <span className="text-xs font-semibold uppercase tracking-widest text-sage">For Hosts</span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-charcoal mt-3 mb-3">Earn by Sharing Your Space</h2>
-            <p className="text-sm sm:text-base text-gray-500 max-w-lg mx-auto">Have an extra room or a whole house? List it on TiraNa and start hosting today.</p>
+            <p className="text-sm sm:text-base text-gray-500 max-w-lg mx-auto">Have an extra space or a whole house? List it on TiraNa and start hosting today.</p>
           </div>
           <div className="max-w-3xl mx-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -220,7 +220,7 @@ function About() {
             </div>
             <div className="text-center mt-8">
               <Link
-                to="/client/signup"
+                to="http://localhost:5174/signup"
                 replace
                 className="inline-block px-6 py-3 bg-sage text-white font-medium uppercase tracking-wider text-xs sm:text-sm hover:bg-olive transition-colors"
               >
@@ -245,7 +245,7 @@ function About() {
               Get Started
             </Link>
             <Link
-              to="/rooms"
+              to="/properties"
               className="inline-block px-8 sm:px-10 py-3 sm:py-4 border border-white/30 text-white font-medium uppercase tracking-wider text-sm sm:text-base hover:bg-white/10 transition-colors"
             >
               Browse Stays
