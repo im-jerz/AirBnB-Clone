@@ -23,26 +23,27 @@ def _dispute_subtitle(dispute) -> str:
 
 
 def _fetch_disputes(search: str, status_filter: str, page: int):
-    db = SessionLocal()
-    try:
-        status_param = "" if status_filter == "All" else status_filter
-        data = get_disputes(db, status=status_param, page=page, per_page=PAGE_SIZE)
-        disputes = data["disputes"]
-        if search:
-            s = search.lower()
-            disputes = [d for d in disputes if s in d.booking_id.lower() or s in d.reason.lower()]
-        items = [
-            {
-                "id": str(d.id),
-                "booking_id": d.booking_id,
-                "_subtitle": _dispute_subtitle(d),
-                "_raw": d,
-            }
-            for d in disputes
-        ]
-        return items, data["total"]
-    finally:
-        db.close()
+    with st.spinner("Loading disputes…"):
+        db = SessionLocal()
+        try:
+            status_param = "" if status_filter == "All" else status_filter
+            data = get_disputes(db, status=status_param, page=page, per_page=PAGE_SIZE)
+            disputes = data["disputes"]
+            if search:
+                s = search.lower()
+                disputes = [d for d in disputes if s in d.booking_id.lower() or s in d.reason.lower()]
+            items = [
+                {
+                    "id": str(d.id),
+                    "booking_id": d.booking_id,
+                    "_subtitle": _dispute_subtitle(d),
+                    "_raw": d,
+                }
+                for d in disputes
+            ]
+            return items, data["total"]
+        finally:
+            db.close()
 
 
 def _render_dispute_detail(dispute_id: str) -> None:
@@ -105,7 +106,7 @@ def _render_dispute_detail(dispute_id: str) -> None:
                     st.session_state.show_resolve_form = dispute_id
 
             if st.session_state.get("show_resolve_form") == dispute_id:
-                resolution = st.text_area("Resolution notes", key="resolve_notes")
+                resolution = st.text_area("Resolution notes", key="resolve_notes", help="Explain the resolution outcome.")
                 if st.button("Confirm Resolve", type="primary", key="confirm_resolve"):
                     if not resolution:
                         st.error("Please provide resolution notes.")
@@ -125,7 +126,7 @@ def _render_dispute_detail(dispute_id: str) -> None:
                 st.session_state.show_dismiss_form = dispute_id
 
             if st.session_state.get("show_dismiss_form") == dispute_id:
-                reason = st.text_area("Dismissal reason", key="dismiss_reason")
+                reason = st.text_area("Dismissal reason", key="dismiss_reason", help="Explain why this dispute is being dismissed.")
                 if st.button("Confirm Dismiss", type="primary", key="confirm_dismiss"):
                     if not reason:
                         st.error("Please provide a reason.")
@@ -154,7 +155,7 @@ def _render_dispute_detail(dispute_id: str) -> None:
         # New note
         if dispute.status not in ("resolved", "dismissed"):
             with st.form("new_note", clear_on_submit=True):
-                new_note = st.text_area("Add investigation note")
+                new_note = st.text_area("Add investigation note", help="Your response will be visible to both parties.")
                 submitted = st.form_submit_button("Add Note")
                 if submitted and new_note:
                     add_message(db, dispute_id, "admin", new_note)
@@ -175,6 +176,7 @@ def render(*, admin):
             placeholder="Search disputes...",
             label_visibility="collapsed",
             key="dispute_search",
+            help="Search by booking ID or guest name.",
         )
     with c2:
         status_filter = st.selectbox(
@@ -182,6 +184,7 @@ def render(*, admin):
             ["All", "open", "investigating", "resolved", "dismissed"],
             label_visibility="collapsed",
             key="dispute_status_filter",
+            help="Filter disputes by status.",
         )
 
     st.write("")

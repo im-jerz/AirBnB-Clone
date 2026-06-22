@@ -26,29 +26,30 @@ def _ticket_subtitle(ticket) -> str:
 
 def _fetch_tickets(search: str, status_filter: str, priority_filter: str, page: int):
     """Run the support-tickets query and return (items_for_master, total)."""
-    db = SessionLocal()
-    try:
-        status_param = "" if status_filter == "All" else status_filter
-        data = get_tickets(db, status=status_param, page=page, per_page=PAGE_SIZE)
-        tickets = data["tickets"]
-        if search:
-            s = search.lower()
-            tickets = [t for t in tickets if s in t.subject.lower() or s in t.description.lower()]
-        if priority_filter != "All":
-            tickets = [t for t in tickets if t.priority == priority_filter]
-        # Convert to dicts (the master_detail component expects dicts).
-        items = [
-            {
-                "id": str(t.id),
-                "subject": t.subject,
-                "_subtitle": _ticket_subtitle(t),
-                "_raw": t,
-            }
-            for t in tickets
-        ]
-        return items, data["total"]
-    finally:
-        db.close()
+    with st.spinner("Loading tickets…"):
+        db = SessionLocal()
+        try:
+            status_param = "" if status_filter == "All" else status_filter
+            data = get_tickets(db, status=status_param, page=page, per_page=PAGE_SIZE)
+            tickets = data["tickets"]
+            if search:
+                s = search.lower()
+                tickets = [t for t in tickets if s in t.subject.lower() or s in t.description.lower()]
+            if priority_filter != "All":
+                tickets = [t for t in tickets if t.priority == priority_filter]
+            # Convert to dicts (the master_detail component expects dicts).
+            items = [
+                {
+                    "id": str(t.id),
+                    "subject": t.subject,
+                    "_subtitle": _ticket_subtitle(t),
+                    "_raw": t,
+                }
+                for t in tickets
+            ]
+            return items, data["total"]
+        finally:
+            db.close()
 
 
 def _render_ticket_detail(ticket_id: str) -> None:
@@ -109,7 +110,7 @@ def _render_ticket_detail(ticket_id: str) -> None:
         # New message
         if ticket.status != "resolved":
             with st.form("new_message", clear_on_submit=True):
-                new_msg = st.text_area("Reply")
+                new_msg = st.text_area("Reply", help="Your response will be visible to the guest.")
                 submitted = st.form_submit_button("Send")
                 if submitted and new_msg:
                     add_message(db, ticket_id, "admin", new_msg)
@@ -131,6 +132,7 @@ def render(*, admin):
             placeholder="Search tickets...",
             label_visibility="collapsed",
             key="ticket_search",
+            help="Search by ticket subject or guest name.",
         )
     with c2:
         status_filter = st.selectbox(
@@ -138,6 +140,7 @@ def render(*, admin):
             ["All", "open", "in_progress", "resolved"],
             label_visibility="collapsed",
             key="ticket_status_filter",
+            help="Filter tickets by status.",
         )
     with c3:
         priority_filter = st.selectbox(
@@ -145,6 +148,7 @@ def render(*, admin):
             ["All", "urgent", "high", "medium", "low"],
             label_visibility="collapsed",
             key="ticket_priority_filter",
+            help="Filter tickets by priority level.",
         )
 
     st.write("")

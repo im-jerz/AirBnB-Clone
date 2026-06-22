@@ -7,11 +7,20 @@ def render():
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
         st.write("##")
-        st.markdown("<h2 style='text-align: center;'>Sign In</h2>", unsafe_allow_html=True)
+        st.header("Sign In", anchor=False)
 
         with st.container(border=True):
-            email = st.text_input("Email", placeholder="Enter your email")
-            password = st.text_input("Password", type="password", placeholder="Enter your password")
+            email = st.text_input(
+                "Email",
+                placeholder="Enter your email",
+                help="Your registered admin email.",
+            )
+            password = st.text_input(
+                "Password",
+                type="password",
+                placeholder="Enter your password",
+                help="Your account password.",
+            )
 
             if st.button("Sign In", key="signin_btn", use_container_width=True):
                 if not email or not password:
@@ -19,7 +28,8 @@ def render():
                 else:
                     db = SessionLocal()
                     try:
-                        admin_id, error = login_admin(db, email, password)
+                        with st.spinner("Signing in…"):
+                            admin_id, error = login_admin(db, email, password)
                         if error:
                             st.error(error)
                         else:

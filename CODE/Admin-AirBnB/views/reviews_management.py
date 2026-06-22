@@ -83,17 +83,19 @@ def render(*, admin):
     st.title("Reviews Management")
 
     # Sync from Host API
-    db = SessionLocal()
-    try:
-        sync_reviews(db)
-    finally:
-        db.close()
+    with st.spinner("Syncing reviews…"):
+        db = SessionLocal()
+        try:
+            sync_reviews(db)
+        finally:
+            db.close()
 
     search = st.text_input(
         "Filter by listing ID",
         label_visibility="collapsed",
         key="review_listing_filter",
         placeholder="Filter by listing ID...",
+        help="Search by reviewer name or listing ID.",
     )
 
     st.write("")

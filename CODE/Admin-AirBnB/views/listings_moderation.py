@@ -15,7 +15,8 @@ STATUS_LABELS = ["All Statuses", "Pending", "Approved", "Suspended", "Rejected"]
 
 
 def _render_listing_detail(listing_id: str) -> None:
-    listing = host_api.get_listing(listing_id)
+    with st.spinner("Loading listing details…"):
+        listing = host_api.get_listing(listing_id)
     if not listing:
         with st.container(border=True):
             st.warning("Could not load listing details.")
@@ -76,7 +77,7 @@ def _render_listing_detail(listing_id: str) -> None:
                 st.session_state.show_reject_listing_form = listing_id
 
         if st.session_state.get("show_reject_listing_form") == listing_id:
-            reason = st.text_area("Rejection reason", key="reject_listing_reason")
+            reason = st.text_area("Rejection reason", key="reject_listing_reason", help="Explain why this listing is being rejected.")
             if st.button("Confirm Rejection", type="primary", key="confirm_reject_listing"):
                 if not reason:
                     st.error("Please provide a reason.")
@@ -102,7 +103,7 @@ def _render_listing_detail(listing_id: str) -> None:
             st.session_state.show_suspend_listing_form = listing_id
 
         if st.session_state.get("show_suspend_listing_form") == listing_id:
-            reason = st.text_area("Suspension reason", key="suspend_listing_reason")
+            reason = st.text_area("Suspension reason", key="suspend_listing_reason", help="Provide reason for suspension.")
             if st.button("Confirm Suspension", type="primary", key="confirm_suspend_listing"):
                 if not reason:
                     st.error("Please provide a reason.")
@@ -140,6 +141,7 @@ def render(*, admin):
             format_func=lambda x: STATUS_LABELS[STATUS_OPTIONS.index(x)],
             label_visibility="collapsed",
             key="listing_status_filter",
+            help="Filter listings by status.",
         )
     with col2:
         search = st.text_input(
@@ -147,6 +149,7 @@ def render(*, admin):
             label_visibility="collapsed",
             key="listing_search",
             placeholder="Search listings...",
+            help="Search by listing title or host name.",
         )
 
     st.write("")
@@ -154,12 +157,13 @@ def render(*, admin):
     page = st.session_state.get("listings_page", 1)
     status_filter = status_idx
 
-    data = host_api.get_listings(
-        status=status_filter,
-        search=search,
-        page=page,
-        per_page=PAGE_SIZE,
-    )
+    with st.spinner("Loading listings…"):
+        data = host_api.get_listings(
+            status=status_filter,
+            search=search,
+            page=page,
+            per_page=PAGE_SIZE,
+        )
 
     items = data.get("listings") if data else None
     total = data.get("total", 0) if data else 0

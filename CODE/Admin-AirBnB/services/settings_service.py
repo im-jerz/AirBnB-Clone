@@ -8,8 +8,6 @@ from models.system_setting import SystemSetting
 
 DEFAULT_SETTINGS = {
     "commission_percent": ("10", "Platform commission percentage"),
-    "host_api_url": ("http://localhost:5000", "Host module API base URL"),
-    "host_api_key": ("", "API key for Host module authentication"),
     "smtp_host": ("smtp.gmail.com", "SMTP server host"),
     "smtp_port": ("587", "SMTP server port"),
     "smtp_user": ("", "SMTP username"),

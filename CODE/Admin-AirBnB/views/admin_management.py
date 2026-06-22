@@ -81,10 +81,10 @@ def render(*, admin):
     # Create new admin
     with st.expander("Create New Admin"):
         with st.form("create_admin_form"):
-            new_name = st.text_input("Full Name")
-            new_email = st.text_input("Email")
-            new_password = st.text_input("Password", type="password")
-            confirm_password = st.text_input("Confirm Password", type="password")
+            new_name = st.text_input("Full Name", help="Your full legal name.")
+            new_email = st.text_input("Email", help="Login email address.")
+            new_password = st.text_input("Password", type="password", help="Minimum 8 characters.")
+            confirm_password = st.text_input("Confirm Password", type="password", help="Must match the password above.")
             submitted = st.form_submit_button("Create Admin")
 
             if submitted:
@@ -121,30 +121,32 @@ def render(*, admin):
         label_visibility="collapsed",
         key="admin_search",
         placeholder="Search admins...",
+        help="Search by name or email.",
     )
 
-    db_list = SessionLocal()
-    try:
-        query = db_list.query(AdminUser)
-        if search:
-            query = query.filter(
-                (AdminUser.full_name.ilike(f"%{search}%")) |
-                (AdminUser.email.ilike(f"%{search}%"))
-            )
-        total = query.count()
-        admins = query.order_by(AdminUser.created_at.desc()).offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all()
+    with st.spinner("Loading admins…"):
+        db_list = SessionLocal()
+        try:
+            query = db_list.query(AdminUser)
+            if search:
+                query = query.filter(
+                    (AdminUser.full_name.ilike(f"%{search}%")) |
+                    (AdminUser.email.ilike(f"%{search}%"))
+                )
+            total = query.count()
+            admins = query.order_by(AdminUser.created_at.desc()).offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all()
 
-        items = [
-            {
-                "id": a.id,
-                "full_name": a.full_name,
-                "email": a.email,
-                "is_active": a.is_active,
-            }
-            for a in admins
-        ]
-    finally:
-        db_list.close()
+            items = [
+                {
+                    "id": a.id,
+                    "full_name": a.full_name,
+                    "email": a.email,
+                    "is_active": a.is_active,
+                }
+                for a in admins
+            ]
+        finally:
+            db_list.close()
 
     render_master_detail(
         items=items,

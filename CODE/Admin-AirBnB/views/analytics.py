@@ -19,19 +19,20 @@ from utils.auth import require_admin
 def _render_overview():
     st.subheader("Platform Overview")
 
-    db = SessionLocal()
-    try:
-        total_bookings = db.query(BookingCache).count()
-        completed_bookings = db.query(BookingCache).filter(BookingCache.status == "completed").count()
-        cancelled_bookings = db.query(BookingCache).filter(BookingCache.status == "cancelled").count()
+    with st.spinner("Loading overview data…"):
+        db = SessionLocal()
+        try:
+            total_bookings = db.query(BookingCache).count()
+            completed_bookings = db.query(BookingCache).filter(BookingCache.status == "completed").count()
+            cancelled_bookings = db.query(BookingCache).filter(BookingCache.status == "cancelled").count()
 
-        total_revenue = db.query(func.sum(PaymentCache.amount)).filter(PaymentCache.status == "completed").scalar() or 0
-        total_payments = db.query(PaymentCache).filter(PaymentCache.status == "completed").count()
-        total_refunds = db.query(func.sum(PaymentCache.refund_amount)).filter(PaymentCache.refund_amount.isnot(None)).scalar() or 0
+            total_revenue = db.query(func.sum(PaymentCache.amount)).filter(PaymentCache.status == "completed").scalar() or 0
+            total_payments = db.query(PaymentCache).filter(PaymentCache.status == "completed").count()
+            total_refunds = db.query(func.sum(PaymentCache.refund_amount)).filter(PaymentCache.refund_amount.isnot(None)).scalar() or 0
 
-        avg_booking_value = total_revenue / completed_bookings if completed_bookings > 0 else 0
-    finally:
-        db.close()
+            avg_booking_value = total_revenue / completed_bookings if completed_bookings > 0 else 0
+        finally:
+            db.close()
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Gross Booking Value", f"₱{total_revenue:,.2f}")
@@ -77,25 +78,30 @@ def _render_overview():
 def _render_booking_insights():
     st.subheader("Booking Insights")
 
+    with st.spinner("Loading booking insights…"):
+        db = SessionLocal()
+        try:
+            total = db.query(BookingCache).count()
+            if total == 0:
+                st.info("No booking data available for insights.")
+                return
+
+            avg_nights = db.query(func.avg(BookingCache.nights)).scalar() or 0
+            cancellation_rate = (db.query(BookingCache).filter(BookingCache.status == "cancelled").count() / total * 100) if total > 0 else 0
+            total_revenue = db.query(func.sum(BookingCache.total_amount)).scalar() or 0
+        finally:
+            db.close()
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Avg Nights per Booking", f"{avg_nights:.1f}")
+    c2.metric("Cancellation Rate", f"{cancellation_rate:.1f}%")
+    c3.metric("Total Booking Value", f"₱{total_revenue:,.2f}")
+
+    st.divider()
+
+    st.subheader("Bookings by Month")
     db = SessionLocal()
     try:
-        total = db.query(BookingCache).count()
-        if total == 0:
-            st.info("No booking data available for insights.")
-            return
-
-        avg_nights = db.query(func.avg(BookingCache.nights)).scalar() or 0
-        cancellation_rate = (db.query(BookingCache).filter(BookingCache.status == "cancelled").count() / total * 100) if total > 0 else 0
-        total_revenue = db.query(func.sum(BookingCache.total_amount)).scalar() or 0
-
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Avg Nights per Booking", f"{avg_nights:.1f}")
-        c2.metric("Cancellation Rate", f"{cancellation_rate:.1f}%")
-        c3.metric("Total Booking Value", f"₱{total_revenue:,.2f}")
-
-        st.divider()
-
-        st.subheader("Bookings by Month")
         bookings = db.query(BookingCache.created_at).all()
         if bookings:
             df = pd.DataFrame([(b[0].strftime("%Y-%m") if b[0] else "Unknown") for b in bookings], columns=["Month"])
@@ -110,15 +116,16 @@ def _render_booking_insights():
 def _render_user_activity():
     st.subheader("User Activity")
 
-    db = SessionLocal()
-    try:
-        total_support_tickets = db.query(SupportTicket).count()
-        open_tickets = db.query(SupportTicket).filter(SupportTicket.status == "open").count()
-        total_disputes = db.query(Dispute).count()
-        open_disputes = db.query(Dispute).filter(Dispute.status == "open").count()
-        total_admin_actions = db.query(AuditLog).count()
-    finally:
-        db.close()
+    with st.spinner("Loading user activity…"):
+        db = SessionLocal()
+        try:
+            total_support_tickets = db.query(SupportTicket).count()
+            open_tickets = db.query(SupportTicket).filter(SupportTicket.status == "open").count()
+            total_disputes = db.query(Dispute).count()
+            open_disputes = db.query(Dispute).filter(Dispute.status == "open").count()
+            total_admin_actions = db.query(AuditLog).count()
+        finally:
+            db.close()
 
     c1, c2, c3 = st.columns(3)
     c1.metric("Total Support Tickets", f"{total_support_tickets:,}", f"{open_tickets} open")
@@ -169,76 +176,78 @@ def _render_reports():
     st.subheader("Exportable Reports")
 
     report_type = st.selectbox(
-        "Select Report",
+        "Select report type",
         ["Platform Performance", "Booking Insights", "User Activity", "Revenue Report"],
-        key="report_type"
+        key="report_type",
+        help="Report type determines which metrics are displayed.",
     )
 
-    db = SessionLocal()
-    try:
-        if report_type == "Platform Performance":
-            st.write("**Platform Performance Report**")
-            total_bookings = db.query(BookingCache).count()
-            completed = db.query(BookingCache).filter(BookingCache.status == "completed").count()
-            total_revenue = db.query(func.sum(PaymentCache.amount)).filter(PaymentCache.status == "completed").scalar() or 0
-            unique_guests = db.query(BookingCache.guest_id).distinct().count()
+    with st.spinner("Generating report…"):
+        db = SessionLocal()
+        try:
+            if report_type == "Platform Performance":
+                st.write("**Platform Performance Report**")
+                total_bookings = db.query(BookingCache).count()
+                completed = db.query(BookingCache).filter(BookingCache.status == "completed").count()
+                total_revenue = db.query(func.sum(PaymentCache.amount)).filter(PaymentCache.status == "completed").scalar() or 0
+                unique_guests = db.query(BookingCache.guest_id).distinct().count()
 
-            report_data = pd.DataFrame({
-                "Metric": ["Total Bookings", "Completed Bookings", "Completion Rate", "Total Revenue", "Avg Revenue per Booking"],
-                "Value": [
-                    total_bookings,
-                    completed,
-                    f"{(completed/total_bookings*100) if total_bookings > 0 else 0:.1f}%",
-                    f"₱{total_revenue:,.2f}",
-                    f"₱{(total_revenue/completed) if completed > 0 else 0:,.2f}",
-                ]
-            })
+                report_data = pd.DataFrame({
+                    "Metric": ["Total Bookings", "Completed Bookings", "Completion Rate", "Total Revenue", "Avg Revenue per Booking"],
+                    "Value": [
+                        total_bookings,
+                        completed,
+                        f"{(completed/total_bookings*100) if total_bookings > 0 else 0:.1f}%",
+                        f"₱{total_revenue:,.2f}",
+                        f"₱{(total_revenue/completed) if completed > 0 else 0:,.2f}",
+                    ]
+                })
 
-        elif report_type == "Booking Insights":
-            st.write("**Booking Insights Report**")
-            avg_nights = db.query(func.avg(BookingCache.nights)).scalar() or 0
-            cancellation_rate = (db.query(BookingCache).filter(BookingCache.status == "cancelled").count() / db.query(BookingCache).count() * 100) if db.query(BookingCache).count() > 0 else 0
-            total_revenue = db.query(func.sum(BookingCache.total_amount)).scalar() or 0
+            elif report_type == "Booking Insights":
+                st.write("**Booking Insights Report**")
+                avg_nights = db.query(func.avg(BookingCache.nights)).scalar() or 0
+                cancellation_rate = (db.query(BookingCache).filter(BookingCache.status == "cancelled").count() / db.query(BookingCache).count() * 100) if db.query(BookingCache).count() > 0 else 0
+                total_revenue = db.query(func.sum(BookingCache.total_amount)).scalar() or 0
 
-            report_data = pd.DataFrame({
-                "Metric": ["Avg Nights", "Cancellation Rate", "Total Booking Value"],
-                "Value": [f"{avg_nights:.1f}", f"{cancellation_rate:.1f}%", f"₱{total_revenue:,.2f}"]
-            })
+                report_data = pd.DataFrame({
+                    "Metric": ["Avg Nights", "Cancellation Rate", "Total Booking Value"],
+                    "Value": [f"{avg_nights:.1f}", f"{cancellation_rate:.1f}%", f"₱{total_revenue:,.2f}"]
+                })
 
-        elif report_type == "User Activity":
-            st.write("**User Activity Report**")
-            total_tickets = db.query(SupportTicket).count()
-            open_tickets = db.query(SupportTicket).filter(SupportTicket.status == "open").count()
-            total_disputes = db.query(Dispute).count()
-            total_admin_actions = db.query(AuditLog).count()
+            elif report_type == "User Activity":
+                st.write("**User Activity Report**")
+                total_tickets = db.query(SupportTicket).count()
+                open_tickets = db.query(SupportTicket).filter(SupportTicket.status == "open").count()
+                total_disputes = db.query(Dispute).count()
+                total_admin_actions = db.query(AuditLog).count()
 
-            report_data = pd.DataFrame({
-                "Metric": ["Total Support Tickets", "Open Tickets", "Total Disputes", "Total Admin Actions"],
-                "Value": [total_tickets, open_tickets, total_disputes, total_admin_actions]
-            })
+                report_data = pd.DataFrame({
+                    "Metric": ["Total Support Tickets", "Open Tickets", "Total Disputes", "Total Admin Actions"],
+                    "Value": [total_tickets, open_tickets, total_disputes, total_admin_actions]
+                })
 
-        else:
-            st.write("**Revenue Report**")
-            payments = db.query(
-                PaymentCache.method,
-                func.sum(PaymentCache.amount),
-                func.count(PaymentCache.id)
-            ).filter(PaymentCache.status == "completed").group_by(PaymentCache.method).all()
+            else:
+                st.write("**Revenue Report**")
+                payments = db.query(
+                    PaymentCache.method,
+                    func.sum(PaymentCache.amount),
+                    func.count(PaymentCache.id)
+                ).filter(PaymentCache.status == "completed").group_by(PaymentCache.method).all()
 
-            report_data = pd.DataFrame(payments, columns=["Payment Method", "Total Revenue", "Transaction Count"]) if payments else pd.DataFrame({"Metric": ["No data"], "Value": ["-"]})
+                report_data = pd.DataFrame(payments, columns=["Payment Method", "Total Revenue", "Transaction Count"]) if payments else pd.DataFrame({"Metric": ["No data"], "Value": ["-"]})
 
-        st.dataframe(report_data, use_container_width=True, hide_index=True)
+            st.dataframe(report_data, use_container_width=True, hide_index=True)
 
-        csv = report_data.to_csv(index=False)
-        st.download_button(
-            label=f"Download {report_type} CSV",
-            data=csv,
-            file_name=f"{report_type.lower().replace(' ', '_')}_report.csv",
-            mime="text/csv",
-            key=f"download_{report_type.lower().replace(' ', '_')}",
-        )
-    finally:
-        db.close()
+            csv = report_data.to_csv(index=False)
+            st.download_button(
+                label=f"Download {report_type} CSV",
+                data=csv,
+                file_name=f"{report_type.lower().replace(' ', '_')}_report.csv",
+                mime="text/csv",
+                key=f"download_{report_type.lower().replace(' ', '_')}",
+            )
+        finally:
+            db.close()
 
 
 @require_admin

@@ -11,7 +11,8 @@ from utils.constants import PAGE_SIZE
 
 
 def _render_host_detail(host_id: str) -> None:
-    host = host_api.get_host(host_id)
+    with st.spinner("Loading host details…"):
+        host = host_api.get_host(host_id)
     if not host:
         with st.container(border=True):
             st.warning("Could not load host details.")
@@ -64,7 +65,7 @@ def _render_host_detail(host_id: str) -> None:
 
         with col1:
             if st.button("Suspend Host", type="primary", disabled=host.get("status") == "suspended"):
-                reason = st.text_input("Reason for suspension", key="suspend_reason")
+                reason = st.text_input("Reason for suspension", key="suspend_reason", help="Provide a reason for suspension.")
                 if reason:
                     result = host_api.suspend_host(host_id, reason=reason)
                     if result:
@@ -184,7 +185,7 @@ def _render_host_detail(host_id: str) -> None:
                         st.session_state.show_reject_form = verification.get("id", host_id)
 
                 if st.session_state.get("show_reject_form") == verification.get("id", host_id):
-                    reason = st.text_area("Rejection reason", key="reject_reason")
+                    reason = st.text_area("Rejection reason", key="reject_reason", help="Explain why this host is being rejected.")
                     if st.button("Confirm Rejection", type="primary"):
                         if not reason:
                             st.error("Please provide a reason.")
@@ -261,6 +262,7 @@ def render(*, admin):
             placeholder="Search by name or email...",
             label_visibility="collapsed",
             key="host_search",
+            help="Search is case-insensitive.",
         )
     with col_status:
         status_filter = st.selectbox(
@@ -268,6 +270,7 @@ def render(*, admin):
             ["All", "Active", "Suspended", "Pending"],
             label_visibility="collapsed",
             key="host_status_filter",
+            help="Filter hosts by account status.",
         )
 
     st.write("")
@@ -275,12 +278,13 @@ def render(*, admin):
     page = st.session_state.get("host_page", 1)
     status_param = "" if status_filter == "All" else status_filter.lower()
 
-    data = host_api.get_hosts(
-        search=search,
-        status=status_param,
-        page=page,
-        per_page=PAGE_SIZE,
-    )
+    with st.spinner("Loading hosts…"):
+        data = host_api.get_hosts(
+            search=search,
+            status=status_param,
+            page=page,
+            per_page=PAGE_SIZE,
+        )
 
     items = data.get("hosts") if data else None
     total = data.get("total", 0) if data else 0

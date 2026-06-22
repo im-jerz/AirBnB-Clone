@@ -13,7 +13,8 @@ from utils.constants import PAGE_SIZE
 
 
 def _render_guest_detail(guest_id: str) -> None:
-    guest = host_api.get_guest(guest_id)
+    with st.spinner("Loading guest details…"):
+        guest = host_api.get_guest(guest_id)
     if not guest:
         with st.container(border=True):
             st.warning("Could not load guest details.")
@@ -50,7 +51,7 @@ def _render_guest_detail(guest_id: str) -> None:
         if st.button("Ban Guest", type="primary", disabled=guest.get("status") == "banned", key="ban_guest_btn"):
             st.session_state["show_ban_form"] = True
         if st.session_state.get("show_ban_form"):
-            reason = st.text_input("Reason for ban", key="ban_reason")
+            reason = st.text_input("Reason for ban", key="ban_reason", help="This reason will be logged in the audit trail.")
             if st.button("Confirm Ban", type="primary", key="confirm_ban_btn"):
                 if not reason:
                     st.error("Please provide a reason.")
@@ -128,6 +129,7 @@ def render(*, admin):
             placeholder="Search by name or email...",
             label_visibility="collapsed",
             key="guest_search",
+            help="Search is case-insensitive.",
         )
     with col_status:
         status_filter = st.selectbox(
@@ -135,6 +137,7 @@ def render(*, admin):
             ["All", "Active", "Banned"],
             label_visibility="collapsed",
             key="guest_status_filter",
+            help="Filter guests by account status.",
         )
 
     st.write("")
@@ -142,12 +145,13 @@ def render(*, admin):
     page = st.session_state.get("guest_page", 1)
     status_param = "" if status_filter == "All" else status_filter.lower()
 
-    data = host_api.get_guests(
-        search=search,
-        status=status_param,
-        page=page,
-        per_page=PAGE_SIZE,
-    )
+    with st.spinner("Loading guests…"):
+        data = host_api.get_guests(
+            search=search,
+            status=status_param,
+            page=page,
+            per_page=PAGE_SIZE,
+        )
 
     items = data.get("guests") if data else None
     total = data.get("total", 0) if data else 0

@@ -33,7 +33,8 @@ def _render_moderation_log():
 
 def _render_reported_listings():
     st.subheader("Reported Listings")
-    data = host_api.get_listings(status="reported", page=1, per_page=100)
+    with st.spinner("Loading reported listings…"):
+        data = host_api.get_listings(status="reported", page=1, per_page=100)
     listings = data.get("listings") if data else None
 
     if listings is None:
@@ -82,7 +83,7 @@ def _render_reported_listings():
                         st.rerun()
 
             if st.session_state.get(f"show_suspend_mod_{listing_id}"):
-                reason = st.text_area("Suspension reason", key=f"mod_suspend_reason_{listing_id}")
+                reason = st.text_area("Suspension reason", key=f"mod_suspend_reason_{listing_id}", help="Provide additional context for this action.")
                 if st.button("Confirm Suspension", type="primary", key=f"confirm_mod_suspend_{listing_id}"):
                     if not reason:
                         st.error("Please provide a reason.")
@@ -122,7 +123,8 @@ def _render_reported_listings():
 
 def _render_flagged_content():
     st.subheader("Flagged Reviews")
-    data = host_api.get_reviews(page=1, per_page=100)
+    with st.spinner("Loading flagged reviews…"):
+        data = host_api.get_reviews(page=1, per_page=100)
     reviews = data.get("reviews") if data else None
 
     if reviews is None:

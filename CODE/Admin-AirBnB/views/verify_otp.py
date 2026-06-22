@@ -42,14 +42,19 @@ def render():
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
         st.write("##")
-        st.markdown("<h2 style='text-align: center;'>Verify OTP</h2>", unsafe_allow_html=True)
+        st.header("Verify OTP", anchor=False)
         st.info(f"A 6-digit code was sent to **{masked_email}**")
 
         if Config.APP_ENV == "development":
             st.warning("DEV MODE — Check the Docker logs for the OTP code:\n`docker compose logs streamlit`")
 
         with st.container(border=True):
-            code = st.text_input("Enter 6-digit code", max_chars=6, placeholder="000000")
+            code = st.text_input(
+                "Enter 6-digit code",
+                max_chars=6,
+                placeholder="000000",
+                help="Check your email for a 6-digit numeric code.",
+            )
 
             if st.button("Verify", key="verify_btn", use_container_width=True):
                 if len(code) != 6 or not code.isdigit():
@@ -57,10 +62,11 @@ def render():
                 else:
                     db = SessionLocal()
                     try:
-                        if purpose == "signup_verify":
-                            valid, error = verify_signup_otp(db, admin_id, code)
-                        else:
-                            valid, error = verify_signin_otp(db, admin_id, code)
+                        with st.spinner("Verifying…"):
+                            if purpose == "signup_verify":
+                                valid, error = verify_signup_otp(db, admin_id, code)
+                            else:
+                                valid, error = verify_signin_otp(db, admin_id, code)
 
                         if valid:
                             st.session_state.logged_in = True
@@ -92,7 +98,8 @@ def render():
                 if st.button("Resend Code", key="resend_btn", use_container_width=True):
                     db = SessionLocal()
                     try:
-                        code, error = resend_otp(db, admin_id, purpose, email)
+                        with st.spinner("Sending…"):
+                            code, error = resend_otp(db, admin_id, purpose, email)
                         if error:
                             st.error(error)
                         else:
