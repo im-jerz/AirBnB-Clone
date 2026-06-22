@@ -14,6 +14,13 @@ from app.models.property import (
     PropertyImage,
     AvailabilityCalendar,
 )
+from app.models.booking import (
+    Booking,
+    BookingPriceDetail,
+    BookingCancellation,
+    Payment,
+    SupportTicket,
+)
 
 __all__ = [
     "Host",
@@ -28,4 +35,9 @@ __all__ = [
     "PropertyAmenity",
     "PropertyImage",
     "AvailabilityCalendar",
+    "Booking",
+    "BookingPriceDetail",
+    "BookingCancellation",
+    "Payment",
+    "SupportTicket",
 ]

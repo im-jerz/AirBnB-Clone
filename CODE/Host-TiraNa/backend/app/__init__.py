@@ -46,6 +46,9 @@ def create_app(config_name: str = "development") -> Flask:
 
     register_blueprints(app)
 
+    from app.cli import register_cli
+    register_cli(app)
+
     @app.route("/uploads/kyc/properties/<path:filepath>")
     def uploaded_property_photo(filepath):
         return send_from_directory(

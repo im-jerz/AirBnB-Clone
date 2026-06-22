@@ -16,6 +16,7 @@ import BookingStatusBadge from "../../components/booking/BookingStatusBadge";
 import BookingStatusTimeline from "../../components/booking/BookingStatusTimeline";
 import PriceBreakdown from "../../components/booking/PriceBreakdown";
 import CancelBookingModal from "../../components/booking/CancelBookingModal";
+import DisputeModal from "../../components/booking/DisputeModal";
 import { useToast } from "../../components/common/Toast";
 import { resolveMediaUrl } from "../../api/properties";
 import { formatPHP } from "../../utils/formatCurrency";
@@ -33,10 +34,11 @@ const PAYMENT_LABEL = { paid: "Paid", pending: "Pending", refunded: "Refunded" }
 export default function BookingDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { bookings, loading, cancel } = useOutletContext();
+  const { bookings, loading, cancel, dispute } = useOutletContext();
   const { push } = useToast();
 
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [disputeOpen, setDisputeOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [closing, setClosing] = useState(false);
 
@@ -74,8 +76,22 @@ export default function BookingDetail() {
     }
   }
 
+  async function handleDisputeConfirm(reason) {
+    setBusy(true);
+    try {
+      await dispute(booking, reason);
+      push("Dispute submitted. Our team will review it shortly.", "info");
+      setDisputeOpen(false);
+    } catch (err) {
+      push(err.response?.data?.message || "Couldn't submit this report. Please try again.", "error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const nights = booking ? nightsBetween(booking.check_in, booking.check_out) : 0;
   const isCancellable = booking && (booking.status === "confirmed" || booking.status === "in_progress");
+  const isDisputable = booking && ["confirmed", "in_progress", "completed"].includes(booking.status);
   const initial = booking?.guest_name?.charAt(0)?.toUpperCase() || "G";
 
   return (
@@ -231,16 +247,20 @@ export default function BookingDetail() {
               </div>
 
               {/* Actions */}
-              {isCancellable ? (
+              {isCancellable || isDisputable ? (
                 <div className="detail-card">
                   <h2 className="detail-card-title">Actions</h2>
                   <div className="detail-side-actions">
-                    <button type="button" className="btn-inline btn-danger" style={{ width: "100%" }} onClick={() => setCancelOpen(true)}>
-                      Cancel booking
-                    </button>
-                    <button type="button" className="btn-inline btn-ghost" style={{ width: "100%" }}>
-                      <IconFlag /> Report an issue
-                    </button>
+                    {isCancellable ? (
+                      <button type="button" className="btn-inline btn-danger" style={{ width: "100%" }} onClick={() => setCancelOpen(true)}>
+                        Cancel booking
+                      </button>
+                    ) : null}
+                    {isDisputable ? (
+                      <button type="button" className="btn-inline btn-ghost" style={{ width: "100%" }} onClick={() => setDisputeOpen(true)}>
+                        <IconFlag /> Report an issue
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               ) : null}
@@ -250,13 +270,22 @@ export default function BookingDetail() {
       </aside>
 
       {booking ? (
-        <CancelBookingModal
-          open={cancelOpen}
-          booking={booking}
-          busy={busy}
-          onConfirm={handleCancelConfirm}
-          onCancel={() => setCancelOpen(false)}
-        />
+        <>
+          <CancelBookingModal
+            open={cancelOpen}
+            booking={booking}
+            busy={busy}
+            onConfirm={handleCancelConfirm}
+            onCancel={() => setCancelOpen(false)}
+          />
+          <DisputeModal
+            open={disputeOpen}
+            booking={booking}
+            busy={busy}
+            onConfirm={handleDisputeConfirm}
+            onCancel={() => setDisputeOpen(false)}
+          />
+        </>
       ) : null}
     </div>
   );
