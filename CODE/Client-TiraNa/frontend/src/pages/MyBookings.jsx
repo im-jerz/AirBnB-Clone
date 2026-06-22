@@ -188,14 +188,96 @@ function StarIcon({ className, filled }) {
   )
 }
 
-function ReviewModal({ booking, propertyTitle, onClose, onSubmit, loading, error }) {
-  const [rating, setRating] = useState(0)
+function StarIconSimple({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="currentColor">
+      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+    </svg>
+  )
+}
+
+function HalfStarIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="currentColor">
+      <defs>
+        <linearGradient id="halfGradBook">
+          <stop offset="50%" stopColor="currentColor" />
+          <stop offset="50%" stopColor="#D1D5DB" />
+        </linearGradient>
+      </defs>
+      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" fill="url(#halfGradBook)" />
+    </svg>
+  )
+}
+
+function RatingStars({ rating, size }) {
+  const s = size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'
+  const stars = []
+  const full = Math.floor(rating)
+  const hasHalf = rating - full >= 0.5
+  for (let i = 0; i < full; i++) {
+    stars.push(<StarIconSimple key={`full-${i}`} className={`${s} text-yellow-500`} />)
+  }
+  if (hasHalf) {
+    stars.push(<HalfStarIcon key="half" className={`${s} text-yellow-500`} />)
+  }
+  while (stars.length < 5) {
+    stars.push(<StarIconSimple key={`empty-${stars.length}`} className={`${s} text-gray-300`} />)
+  }
+  return <span className="inline-flex items-center gap-0.5">{stars}</span>
+}
+
+const ratingCategories = [
+  { key: 'accuracy', label: 'Accuracy' },
+  { key: 'checkIn', label: 'Check-in' },
+  { key: 'cleanliness', label: 'Cleanliness' },
+  { key: 'communication', label: 'Communication' },
+  { key: 'location', label: 'Location' },
+  { key: 'value', label: 'Value' },
+]
+
+function CategoryRatingRow({ label, value, onChange }) {
   const [hover, setHover] = useState(0)
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-gray-700">{label}</span>
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => onChange(star)}
+            onMouseEnter={() => setHover(star)}
+            onMouseLeave={() => setHover(0)}
+            className="p-0.5 transition-colors bg-transparent border-none cursor-pointer"
+          >
+            <StarIconSimple
+              className={`w-5 h-5 ${(hover || value) >= star ? 'text-yellow-500' : 'text-gray-300'}`}
+            />
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ReviewModal({ booking, propertyTitle, onClose, onSubmit, loading, error }) {
+  const [reviewRatings, setReviewRatings] = useState({ accuracy: 0, checkIn: 0, cleanliness: 0, communication: 0, location: 0, value: 0 })
   const [text, setText] = useState('')
 
+  function setCategory(key, value) {
+    setReviewRatings(prev => ({ ...prev, [key]: value }))
+  }
+
+  const catValues = Object.values(reviewRatings)
+  const overallRating = catValues.length > 0
+    ? Math.round((catValues.reduce((a, b) => a + b, 0) / catValues.length) * 10) / 10
+    : 0
+  const hasAllRatings = catValues.every(v => v > 0)
+
   async function handleSubmit() {
-    if (rating === 0) return
-    await onSubmit(booking.id, rating, text)
+    if (!hasAllRatings) return
+    await onSubmit(booking.id, reviewRatings, overallRating, text)
   }
 
   return (
@@ -204,21 +286,19 @@ function ReviewModal({ booking, propertyTitle, onClose, onSubmit, loading, error
         <h3 className="text-base font-bold text-charcoal mb-1">Write a Review</h3>
         <p className="text-sm text-gray-500 mb-5 truncate">{propertyTitle}</p>
 
-        <div className="flex items-center gap-1 mb-5">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              type="button"
-              onClick={() => setRating(star)}
-              onMouseEnter={() => setHover(star)}
-              onMouseLeave={() => setHover(0)}
-              className="p-0.5 transition-colors"
-            >
-              <StarIcon
-                className={`w-8 h-8 ${(hover || rating) >= star ? 'text-yellow-500' : 'text-gray-300'}`}
-                filled={(hover || rating) >= star}
-              />
-            </button>
+        <div className="flex items-center gap-2 mb-5 pb-4 border-b border-gray-100">
+          <span className="text-lg font-semibold text-charcoal">{overallRating || '-'}</span>
+          <RatingStars rating={overallRating} size="lg" />
+        </div>
+
+        <div className="space-y-3 mb-5">
+          {ratingCategories.map(cat => (
+            <CategoryRatingRow
+              key={cat.key}
+              label={cat.label}
+              value={reviewRatings[cat.key]}
+              onChange={v => setCategory(cat.key, v)}
+            />
           ))}
         </div>
 
@@ -248,7 +328,7 @@ function ReviewModal({ booking, propertyTitle, onClose, onSubmit, loading, error
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={loading || rating === 0}
+            disabled={loading || !hasAllRatings}
             className="flex-1 py-2.5 text-sm font-medium text-white bg-sage hover:bg-olive transition-colors disabled:opacity-40"
           >
             {loading ? 'Submitting...' : 'Submit Review'}
@@ -460,7 +540,7 @@ function MyBookings() {
     }
   }, [bookings.length])
 
-  async function handleSubmitReview(bookingId, rating, reviewText) {
+  async function handleSubmitReview(bookingId, reviewRatings, overallRating, reviewText) {
     setReviewLoading(true)
     setReviewError('')
     try {
@@ -471,7 +551,17 @@ function MyBookings() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ booking_id: bookingId, rating, review_text: reviewText }),
+        body: JSON.stringify({
+          booking_id: bookingId,
+          rating: overallRating,
+          review_text: reviewText,
+          accuracy: reviewRatings.accuracy,
+          check_in: reviewRatings.checkIn,
+          cleanliness: reviewRatings.cleanliness,
+          communication: reviewRatings.communication,
+          location: reviewRatings.location,
+          value: reviewRatings.value,
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)

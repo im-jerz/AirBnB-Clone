@@ -91,19 +91,23 @@ CREATE INDEX IF NOT EXISTS idx_bookings_user
 CREATE INDEX IF NOT EXISTS idx_bookings_property_status
   ON bookings (property_id, status, user_id);
 
+
+
 CREATE TABLE IF NOT EXISTS reviews (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES client_users(id) ON DELETE CASCADE,
   property_id STRING NOT NULL,
-  rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  rating DECIMAL(3,1) NOT NULL CHECK (rating >= 1 AND rating <= 5),
   review_text TEXT DEFAULT '',
   created_at TIMESTAMP DEFAULT now(),
-  UNIQUE (booking_id)
+  accuracy INT DEFAULT NULL,
+  check_in INT DEFAULT NULL,
+  cleanliness INT DEFAULT NULL,
+  communication INT DEFAULT NULL,
+  location INT DEFAULT NULL,
+  value INT DEFAULT NULL,
+  UNIQUE (booking_id),
+  INDEX idx_reviews_property (property_id, created_at DESC),
+  INDEX idx_reviews_user (user_id, created_at DESC)
 );
-
-CREATE INDEX IF NOT EXISTS idx_reviews_property
-  ON reviews (property_id, created_at DESC);
-
-CREATE INDEX IF NOT EXISTS idx_reviews_user
-  ON reviews (user_id, created_at DESC);

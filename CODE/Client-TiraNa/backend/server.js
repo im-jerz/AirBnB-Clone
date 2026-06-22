@@ -8,6 +8,7 @@ import profileRoutes from './routes/profile.js';
 import notificationRoutes from './routes/notifications.js';
 import bookingRoutes from './routes/booking.js';
 import reviewRoutes from './routes/reviews.js';
+import statsRoutes from './routes/stats.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +25,7 @@ app.use('/api/auth', profileRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api', statsRoutes);
 
 async function cleanupOldCodes() {
   try {

@@ -12,6 +12,7 @@ import Booking from './pages/Booking.jsx'
 import About from './pages/About.jsx'
 import Notifications from './pages/Notifications.jsx'
 import MyBookings from './pages/MyBookings.jsx'
+import Reviews from './pages/Reviews.jsx'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -35,6 +36,7 @@ function App() {
         <Route path="/client/notifications" element={<Notifications />} />
         <Route path="/bookings" element={<MyBookings />} />
         <Route path="/bookings/:id/new" element={<Booking />} />
+        <Route path="/reviews" element={<Reviews />} />
         <Route path="/about" element={<About />} />
     </Routes>
     </>

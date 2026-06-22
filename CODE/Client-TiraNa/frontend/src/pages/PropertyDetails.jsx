@@ -290,6 +290,40 @@ function RatingBreakdownBar({ label, value }) {
   )
 }
 
+const ratingCategories = [
+  { key: 'accuracy', label: 'Accuracy' },
+  { key: 'checkIn', label: 'Check-in' },
+  { key: 'cleanliness', label: 'Cleanliness' },
+  { key: 'communication', label: 'Communication' },
+  { key: 'location', label: 'Location' },
+  { key: 'value', label: 'Value' },
+]
+
+function CategoryRatingRow({ label, value, onChange }) {
+  const [hover, setHover] = useState(0)
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-gray-700">{label}</span>
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => onChange(star)}
+            onMouseEnter={() => setHover(star)}
+            onMouseLeave={() => setHover(0)}
+            className="p-0.5 transition-colors bg-transparent border-none cursor-pointer"
+          >
+            <StarIcon
+              className={`w-5 h-5 ${(hover || value) >= star ? 'text-yellow-500' : 'text-gray-300'}`}
+            />
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function PhotoGallery({ images }) {
   const [selected, setSelected] = useState(0)
 
@@ -768,12 +802,33 @@ function PropertyDetails() {
   const [userReviews, setUserReviews] = useState([])
   const [eligibleBooking, setEligibleBooking] = useState(null)
   const [showReviewForm, setShowReviewForm] = useState(false)
-  const [reviewRating, setReviewRating] = useState(0)
-  const [reviewHover, setReviewHover] = useState(0)
+  const [reviewRatings, setReviewRatings] = useState({
+    accuracy: 0,
+    checkIn: 0,
+    cleanliness: 0,
+    communication: 0,
+    location: 0,
+    value: 0,
+  })
   const [reviewText, setReviewText] = useState('')
   const [reviewLoading, setReviewLoading] = useState(false)
   const [reviewError, setReviewError] = useState('')
   const [reviewSubmitted, setReviewSubmitted] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState(null)
+  const [editReview, setEditReview] = useState(null)
+  const [editRatings, setEditRatings] = useState({
+    accuracy: 0,
+    checkIn: 0,
+    cleanliness: 0,
+    communication: 0,
+    location: 0,
+    value: 0,
+  })
+  const [editText, setEditText] = useState('')
+  const [editLoading, setEditLoading] = useState(false)
+  const [editError, setEditError] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const [checkIn, setCheckIn] = useState('')
   const [checkOut, setCheckOut] = useState('')
   const [checkInTime, setCheckInTime] = useState('14:00')
@@ -805,6 +860,10 @@ function PropertyDetails() {
 
     const token = localStorage.getItem('token')
     if (token) {
+      const stored = localStorage.getItem('user')
+      if (stored) {
+        try { setCurrentUserId(JSON.parse(stored).id) } catch {}
+      }
       fetch(`http://localhost:5000/api/bookings`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -924,14 +983,124 @@ function PropertyDetails() {
 
   const displayAmenities = showAllAmenities ? roomAmenities : roomAmenities.slice(0, 8)
 
-  const totalRating = Object.values(room.ratingBreakdown).reduce((a, b) => a + b, 0) / Object.values(room.ratingBreakdown).length
+  function getReviewAvg(r) {
+    const cats = ['accuracy', 'checkIn', 'cleanliness', 'communication', 'location', 'value']
+    const vals = cats.map(k => Number(r[k])).filter(v => v > 0)
+    return vals.length > 0
+      ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10
+      : Number(r.rating)
+  }
+
+  const reviewMap = new Map()
+  ;(room.reviews || []).forEach(r => { if (r.id) reviewMap.set(r.id, r) })
+  userReviews.forEach(r => { if (r.id) reviewMap.set(r.id, r) })
+  const allReviews = [...reviewMap.values()]
+  const allReviewRatings = allReviews.map(r => getReviewAvg(r)).filter(r => r > 0)
+  const computedRating = allReviewRatings.length > 0
+    ? Math.round((allReviewRatings.reduce((a, b) => a + b, 0) / allReviewRatings.length) * 10) / 10
+    : room.rating
+  const computedReviewsCount = allReviewRatings.length || room.reviewsCount
+
+  const categoryAverages = {}
+  ;['accuracy', 'checkIn', 'cleanliness', 'communication', 'location', 'value'].forEach(key => {
+    const ratings = userReviews
+      .filter(r => r[key] != null && Number(r[key]) > 0)
+      .map(r => Number(r[key]))
+    categoryAverages[key] = ratings.length > 0
+      ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
+      : computedRating
+  })
+
+  async function handleEditReview() {
+    const hasRating = Object.values(editRatings).some(v => Number(v) > 0)
+    if (!hasRating || !editReview) return
+    setEditLoading(true)
+    setEditError('')
+    try {
+      const token = localStorage.getItem('token')
+      const catValues = Object.values(editRatings).map(Number).filter(v => v > 0)
+      const overallRating = Math.round((catValues.reduce((a, b) => a + b, 0) / catValues.length) * 10) / 10
+      const res = await fetch(`http://localhost:5000/api/reviews/${editReview.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          rating: overallRating,
+          accuracy: editRatings.accuracy || null,
+          check_in: editRatings.checkIn || null,
+          cleanliness: editRatings.cleanliness || null,
+          communication: editRatings.communication || null,
+          location: editRatings.location || null,
+          value: editRatings.value || null,
+          review_text: editText,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setEditReview(null)
+      setEditRatings({ accuracy: 0, checkIn: 0, cleanliness: 0, communication: 0, location: 0, value: 0 })
+      setEditText('')
+      fetch(`http://localhost:5000/api/reviews/property/${id}`)
+        .then(res => res.json())
+        .then(d => setUserReviews(d.data || []))
+        .catch(() => {})
+    } catch (err) {
+      setEditError(err.message)
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
+  async function handleDeleteReview() {
+    if (!deleteTarget) return
+    setDeleteLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`http://localhost:5000/api/reviews/${deleteTarget.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setDeleteTarget(null)
+      setReviewSubmitted(false)
+      fetch(`http://localhost:5000/api/reviews/property/${id}`)
+        .then(res => res.json())
+        .then(d => setUserReviews(d.data || []))
+        .catch(() => {})
+    } catch (err) {
+      setReviewError(err.message)
+      setDeleteTarget(null)
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  function openEditReview(review) {
+    setEditReview(review)
+    setEditRatings({
+      accuracy: Number(review.accuracy) || 0,
+      checkIn: Number(review.checkIn) || 0,
+      cleanliness: Number(review.cleanliness) || 0,
+      communication: Number(review.communication) || 0,
+      location: Number(review.location) || 0,
+      value: Number(review.value) || 0,
+    })
+    setEditText(review.text || '')
+    setEditError('')
+  }
 
   async function handleSubmitReview() {
-    if (reviewRating === 0 || !eligibleBooking) return
+    const hasRating = Object.values(reviewRatings).some(v => Number(v) > 0)
+    if (!hasRating || !eligibleBooking) return
     setReviewLoading(true)
     setReviewError('')
     try {
       const token = localStorage.getItem('token')
+      const catValues = Object.values(reviewRatings).map(Number).filter(v => v > 0)
+      const overallRating = Math.round((catValues.reduce((a, b) => a + b, 0) / catValues.length) * 10) / 10
       const res = await fetch('http://localhost:5000/api/reviews', {
         method: 'POST',
         headers: {
@@ -940,7 +1109,13 @@ function PropertyDetails() {
         },
         body: JSON.stringify({
           booking_id: eligibleBooking.id,
-          rating: reviewRating,
+          rating: overallRating,
+          accuracy: reviewRatings.accuracy || null,
+          check_in: reviewRatings.checkIn || null,
+          cleanliness: reviewRatings.cleanliness || null,
+          communication: reviewRatings.communication || null,
+          location: reviewRatings.location || null,
+          value: reviewRatings.value || null,
           review_text: reviewText,
         }),
       })
@@ -948,7 +1123,7 @@ function PropertyDetails() {
       if (!res.ok) throw new Error(data.error)
       setReviewSubmitted(true)
       setShowReviewForm(false)
-      setReviewRating(0)
+      setReviewRatings({ accuracy: 0, checkIn: 0, cleanliness: 0, communication: 0, location: 0, value: 0 })
       setReviewText('')
       fetch(`http://localhost:5000/api/reviews/property/${id}`)
         .then(res => res.json())
@@ -1010,8 +1185,8 @@ function PropertyDetails() {
                   </span>
                   <span className="flex items-center gap-1">
                     <StarIcon className="w-4 h-4 text-yellow-500" />
-                    <span className="font-medium text-charcoal">{room.rating}</span>
-                    <span className="text-gray-400">({room.reviewsCount} reviews)</span>
+                    <span className="font-medium text-charcoal">{computedRating}</span>
+                    <span className="text-gray-400">({computedReviewsCount} reviews)</span>
                   </span>
                   {room.superhost && (
                     <span className="flex items-center gap-1 text-teal font-medium text-xs">
@@ -1103,14 +1278,13 @@ function PropertyDetails() {
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <StarIcon className="w-5 h-5 text-yellow-500" />
-                <span className="text-lg sm:text-xl font-bold text-charcoal">{room.rating}</span>
+                <span className="text-lg sm:text-xl font-bold text-charcoal">{computedRating}</span>
                 <span className="text-lg text-gray-400">&middot;</span>
-                <span className="text-lg text-gray-600">{room.reviewsCount} reviews</span>
+                <span className="text-lg text-gray-600">{computedReviewsCount} reviews</span>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mb-8">
-                {Object.entries(room.ratingBreakdown).map(([key, value]) => (
-                  <RatingBreakdownBar key={key} label={ratingLabels[key]} value={value} />
+                {ratingCategories.map(cat => (
+                  <RatingBreakdownBar key={cat.key} label={cat.label} value={categoryAverages[cat.key]} />
                 ))}
               </div>
 
@@ -1136,21 +1310,28 @@ function PropertyDetails() {
               {showReviewForm && (
                 <div className="mb-8 p-5 sm:p-6 bg-white border border-gray-200">
                   <h3 className="text-sm font-bold text-charcoal mb-4">Write Your Review</h3>
-                  <div className="flex items-center gap-1 mb-4">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setReviewRating(star)}
-                        onMouseEnter={() => setReviewHover(star)}
-                        onMouseLeave={() => setReviewHover(0)}
-                        className="p-0.5 transition-colors"
-                      >
-                        <StarIcon
-                          className={`w-7 h-7 ${(reviewHover || reviewRating) >= star ? 'text-yellow-500' : 'text-gray-300'}`}
-                        />
-                      </button>
+                  <div className="space-y-3 mb-4">
+                    {ratingCategories.map((cat) => (
+                      <CategoryRatingRow
+                        key={cat.key}
+                        label={cat.label}
+                        value={reviewRatings[cat.key]}
+                        onChange={(val) => setReviewRatings(prev => ({ ...prev, [cat.key]: val }))}
+                      />
                     ))}
+                  </div>
+                  <div className="flex items-center gap-2 mb-4 pb-4 border-b border-gray-100">
+                    <span className="text-xs font-medium text-gray-500">Overall:</span>
+                    {(() => {
+                      const vals = Object.values(reviewRatings).map(Number).filter(v => v > 0)
+                      const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
+                      return (
+                        <>
+                          <RatingStars rating={avg} />
+                          <span className="text-xs text-gray-400 ml-1">{avg > 0 ? avg.toFixed(1) : ''}</span>
+                        </>
+                      )
+                    })()}
                   </div>
                   <textarea
                     value={reviewText}
@@ -1167,7 +1348,7 @@ function PropertyDetails() {
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => { setShowReviewForm(false); setReviewError(''); setReviewRating(0); setReviewText('') }}
+                      onClick={() => { setShowReviewForm(false); setReviewError(''); setReviewRatings({ accuracy: 0, checkIn: 0, cleanliness: 0, communication: 0, location: 0, value: 0 }); setReviewText('') }}
                       disabled={reviewLoading}
                       className="px-4 py-2.5 text-sm font-medium text-charcoal border border-gray-200 hover:bg-gray-50 transition-colors bg-transparent"
                     >
@@ -1176,7 +1357,7 @@ function PropertyDetails() {
                     <button
                       type="button"
                       onClick={handleSubmitReview}
-                      disabled={reviewLoading || reviewRating === 0}
+                      disabled={reviewLoading || Object.values(reviewRatings).every(v => Number(v) === 0)}
                       className="px-6 py-2.5 text-sm font-medium text-white bg-sage hover:bg-olive transition-colors disabled:opacity-40"
                     >
                       {reviewLoading ? 'Submitting...' : 'Submit Review'}
@@ -1199,27 +1380,54 @@ function PropertyDetails() {
                         <p className="text-xs text-gray-400">{review.date}</p>
                       </div>
                     </div>
-                    <RatingStars rating={review.rating} />
+                    <RatingStars rating={getReviewAvg(review)} />
                     <p className="text-sm text-gray-600 mt-2 leading-relaxed">{review.text}</p>
                   </div>
                 ))}
-                {userReviews.map((review) => (
-                  <div key={review.id} className="pb-6 border-b border-gray-100 last:border-b-0 last:pb-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center text-xs font-bold text-sage shrink-0">
-                        {review.name ? review.name.charAt(0).toUpperCase() : '?'}
+                {userReviews.map((review) => {
+                  const isOwner = currentUserId && review.user_id === currentUserId
+                  return (
+                    <div key={review.id} className="pb-6 border-b border-gray-100 last:border-b-0 last:pb-0 group relative">
+                      {isOwner && (
+                        <div className="absolute top-0 right-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            onClick={() => openEditReview(review)}
+                            className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-sage hover:bg-sage/5 rounded transition-colors bg-transparent border-none cursor-pointer"
+                            title="Edit review"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(review)}
+                            className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors bg-transparent border-none cursor-pointer"
+                            title="Delete review"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-sage/10 flex items-center justify-center text-xs font-bold text-sage shrink-0">
+                          {review.name ? review.name.charAt(0).toUpperCase() : '?'}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-charcoal">{review.name}</p>
+                          <p className="text-xs text-gray-400">{new Date(review.date).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-charcoal">{review.name}</p>
-                        <p className="text-xs text-gray-400">{new Date(review.date).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                      </div>
+                      <RatingStars rating={getReviewAvg(review)} />
+                      {review.text && (
+                        <p className="text-sm text-gray-600 mt-2 leading-relaxed">{review.text}</p>
+                      )}
                     </div>
-                    <RatingStars rating={review.rating} />
-                    {review.text && (
-                      <p className="text-sm text-gray-600 mt-2 leading-relaxed">{review.text}</p>
-                    )}
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -1287,8 +1495,8 @@ function PropertyDetails() {
                   <div className="flex items-start justify-between mb-1">
                     <h3 className="text-sm sm:text-base font-semibold text-charcoal group-hover:text-teal transition-colors">{r.title}</h3>
                     <div className="flex items-center gap-1 text-xs text-gray-600 shrink-0 ml-2">
-                      <StarIcon className="w-3.5 h-3.5 text-yellow-500" />
-                      {r.rating}
+                      <RatingStars rating={r.rating} />
+                      <span>{r.rating}</span>
                     </div>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-500 mb-3">{r.location}</p>
@@ -1346,6 +1554,112 @@ function PropertyDetails() {
         </div>
       </footer>
 
+      {editReview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => { setEditReview(null); setEditError('') }}>
+          <div className="bg-white w-full max-w-sm p-6 sm:p-8 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-charcoal mb-1">Edit Review</h3>
+            <p className="text-sm text-gray-500 mb-5 truncate">{room.title}</p>
+            <div className="mb-5 space-y-3">
+              {ratingCategories.map((cat) => (
+                <div key={cat.key} className="flex items-center justify-between">
+                  <span className="text-sm text-gray-700">{cat.label}</span>
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setEditRatings(prev => ({ ...prev, [cat.key]: star }))}
+                        className="p-0.5 transition-colors bg-transparent border-none cursor-pointer"
+                      >
+                        <svg
+                          className={`w-5 h-5 ${editRatings[cat.key] >= star ? 'text-yellow-500' : 'text-gray-300'}`}
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                <span className="text-xs font-medium text-gray-500">Overall:</span>
+                {(() => {
+                  const vals = Object.values(editRatings).map(Number).filter(v => v > 0)
+                  const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
+                  return (
+                    <>
+                      <RatingStars rating={avg} />
+                      <span className="text-xs text-gray-400 ml-1">{avg > 0 ? avg.toFixed(1) : ''}</span>
+                    </>
+                  )
+                })()}
+              </div>
+            </div>
+            <textarea
+              value={editText}
+              onChange={e => setEditText(e.target.value)}
+              placeholder="Share your experience (optional)"
+              rows={4}
+              className="w-full px-4 py-2.5 border border-gray-200 bg-white text-sm text-charcoal placeholder:text-gray-300 focus:outline-none focus:border-teal focus:ring-1 focus:ring-teal/20 transition-all resize-none mb-4"
+            />
+            {editError && (
+              <div className="mb-4 bg-red-50 border border-red-100 px-4 py-3">
+                <p className="text-xs text-red-600">{editError}</p>
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => { setEditReview(null); setEditError('') }}
+                disabled={editLoading}
+                className="flex-1 py-2.5 text-sm font-medium text-charcoal border border-gray-200 hover:bg-gray-50 transition-colors bg-transparent"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleEditReview}
+                disabled={editLoading || Object.values(editRatings).every(v => Number(v) === 0)}
+                className="flex-1 py-2.5 text-sm font-medium text-white bg-sage hover:bg-olive transition-colors disabled:opacity-40"
+              >
+                {editLoading ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setDeleteTarget(null)}>
+          <div className="bg-white w-full max-w-sm p-6 sm:p-8 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-charcoal mb-2">Delete Review</h3>
+            <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+              Are you sure you want to delete this review? This action cannot be undone.
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleteLoading}
+                className="flex-1 py-2.5 text-sm font-medium text-charcoal border border-gray-200 hover:bg-gray-50 transition-colors bg-transparent"
+              >
+                Keep Review
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteReview}
+                disabled={deleteLoading}
+                className="flex-1 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-40"
+              >
+                {deleteLoading ? 'Deleting...' : 'Yes, Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showShareModal && (
         <ShareModal
           url={window.location.href}
@@ -1363,9 +1677,9 @@ function PropertyDetails() {
             </div>
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <StarIcon className="w-3 h-3 text-yellow-500" />
-              <span>{room.rating}</span>
+              <span>{computedRating}</span>
               <span className="text-gray-300">&middot;</span>
-              <span>{room.reviewsCount} reviews</span>
+              <span>{computedReviewsCount} reviews</span>
             </div>
           </div>
           <button
