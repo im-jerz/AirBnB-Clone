@@ -160,17 +160,39 @@ function Profile() {
     setPassForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
+  function capitalizeFirst(val) {
+    if (!val) return val
+    return val.charAt(0).toUpperCase() + val.slice(1)
+  }
+
   async function handleUpdateProfile(e) {
     e.preventDefault()
     setError('')
     setSuccess('')
+
+    if (form.first_name && /\s/.test(form.first_name)) {
+      setError('First name must not contain spaces')
+      return
+    }
+    if (form.last_name && /\s/.test(form.last_name)) {
+      setError('Last name must not contain spaces')
+      return
+    }
+
+    const payload = {
+      ...form,
+      first_name: capitalizeFirst(form.first_name),
+      middle_name: capitalizeFirst(form.middle_name),
+      last_name: capitalizeFirst(form.last_name),
+    }
+
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
       const res = await fetch(`${API}/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)

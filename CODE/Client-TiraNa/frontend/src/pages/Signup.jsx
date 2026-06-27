@@ -65,6 +65,42 @@ function Signup() {
     e.preventDefault()
     setError('')
 
+    if (form.username.length < 3) {
+      setError('Username must be at least 3 characters')
+      return
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(form.username)) {
+      setError('Username can only contain letters, numbers, and underscores')
+      return
+    }
+
+    if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(form.email)) {
+      setError('Please use a valid Gmail address (example@gmail.com)')
+      return
+    }
+
+    if (form.password.length < 8) {
+      setError('Password must be at least 8 characters')
+      return
+    }
+    if (!/[A-Z]/.test(form.password)) {
+      setError('Password must contain at least one uppercase letter')
+      return
+    }
+    if (!/[a-z]/.test(form.password)) {
+      setError('Password must contain at least one lowercase letter')
+      return
+    }
+    if (!/[0-9]/.test(form.password)) {
+      setError('Password must contain at least one number')
+      return
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(form.password)) {
+      setError('Password must contain at least one symbol')
+      return
+    }
+
     if (form.password !== form.confirmPassword) {
       setError('Passwords do not match')
       return

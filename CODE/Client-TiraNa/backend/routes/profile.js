@@ -91,6 +91,22 @@ router.put('/profile', authMiddleware, async (req, res) => {
   try {
     const { first_name, middle_name, last_name, phone_number, language, bio } = req.body
 
+    function capitalizeFirst(val) {
+      if (!val) return val
+      return val.charAt(0).toUpperCase() + val.slice(1)
+    }
+
+    const safeFirstName = capitalizeFirst(first_name)
+    const safeMiddleName = capitalizeFirst(middle_name)
+    const safeLastName = capitalizeFirst(last_name)
+
+    if (safeFirstName && /\s/.test(safeFirstName)) {
+      return res.status(400).json({ error: 'First name must not contain spaces' })
+    }
+    if (safeLastName && /\s/.test(safeLastName)) {
+      return res.status(400).json({ error: 'Last name must not contain spaces' })
+    }
+
     await pool.query(
       `INSERT INTO personal_information (user_id, first_name, middle_name, last_name, phone_number, language, bio)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -103,7 +119,7 @@ router.put('/profile', authMiddleware, async (req, res) => {
          language = COALESCE($6, personal_information.language),
          bio = COALESCE($7, personal_information.bio),
          updated_at = now()`,
-      [req.user.id, first_name ?? null, middle_name ?? null, last_name ?? null, phone_number ?? null, language ?? null, bio ?? null]
+      [req.user.id, safeFirstName ?? null, safeMiddleName ?? null, safeLastName ?? null, phone_number ?? null, language ?? null, bio ?? null]
     )
 
     const result = await pool.query(

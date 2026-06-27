@@ -8,14 +8,13 @@ import { RatingStars } from '../components/StarRating.jsx'
 function AllProperties() {
   const [rooms, setRooms] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('')
 
   useEffect(() => {
     fetchListings()
       .then(setRooms)
-      .catch((err) => setError(err.message || 'Failed to load properties'))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
@@ -82,24 +81,32 @@ function AllProperties() {
 
       <section className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-sm text-gray-400 mb-8">
-            {filteredRooms.length} {filteredRooms.length === 1 ? 'property' : 'properties'} found
-          </p>
+          {!loading && rooms.length > 0 && (
+            <p className="text-sm text-gray-400 mb-8">
+              {filteredRooms.length} {filteredRooms.length === 1 ? 'property' : 'properties'} found
+            </p>
+          )}
 
-          {error ? (
-            <div className="text-center py-20">
-              <p className="text-red-400 text-sm">{error}</p>
-              <p className="text-gray-400 text-xs mt-2">Make sure Host-TiraNa backend is running on port 5001.</p>
-            </div>
-          ) : loading ? (
+          {loading || rooms.length === 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="bg-white shadow-sm animate-pulse">
-                  <div className="h-52 sm:h-56 bg-gray-200" />
-                  <div className="p-4 sm:p-5 space-y-3">
-                    <div className="h-4 bg-gray-200 w-3/4" />
-                    <div className="h-3 bg-gray-200 w-1/2" />
-                    <div className="h-3 bg-gray-200 w-1/3" />
+                  <div className="relative h-52 sm:h-56 bg-gray-200">
+                    <div className="absolute top-3 right-3 w-20 h-5 bg-gray-300 rounded" />
+                  </div>
+                  <div className="p-4 sm:p-5">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="h-4 bg-gray-200 w-2/3 rounded" />
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-gray-200 rounded-full" />
+                        <div className="w-6 h-3 bg-gray-200 rounded" />
+                      </div>
+                    </div>
+                    <div className="h-3 bg-gray-200 w-1/2 rounded mb-3" />
+                    <div className="flex items-center justify-between">
+                      <div className="h-4 bg-gray-200 w-1/4 rounded" />
+                      <div className="h-3 bg-gray-200 w-16 rounded" />
+                    </div>
                   </div>
                 </div>
               ))}

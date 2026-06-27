@@ -145,8 +145,8 @@ router.post('/reset-password', async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' })
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' })
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' })
     }
 
     const result = await pool.query(
@@ -186,8 +186,32 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' })
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' })
+    if (username.length < 3) {
+      return res.status(400).json({ error: 'Username must be at least 3 characters' })
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' })
+    }
+
+    if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email)) {
+      return res.status(400).json({ error: 'Please use a valid Gmail address (example@gmail.com)' })
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' })
+    }
+    if (!/[A-Z]/.test(password)) {
+      return res.status(400).json({ error: 'Password must contain at least one uppercase letter' })
+    }
+    if (!/[a-z]/.test(password)) {
+      return res.status(400).json({ error: 'Password must contain at least one lowercase letter' })
+    }
+    if (!/[0-9]/.test(password)) {
+      return res.status(400).json({ error: 'Password must contain at least one number' })
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      return res.status(400).json({ error: 'Password must contain at least one symbol' })
     }
 
     const existingEmail = await pool.query(
