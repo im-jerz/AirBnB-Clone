@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { fetchHostProfile } from '../api/listings'
-import Footer from '../components/Footer'
 
 function ArrowLeftIcon({ className }) {
   return (
@@ -55,7 +54,6 @@ export default function HostProfile() {
             <div className="text-gray-400 text-sm">Loading host profile...</div>
           </div>
         </div>
-        <Footer />
       </div>
     )
   }
@@ -71,7 +69,6 @@ export default function HostProfile() {
             </Link>
           </div>
         </div>
-        <Footer />
       </div>
     )
   }
@@ -171,8 +168,6 @@ export default function HostProfile() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   )
 }

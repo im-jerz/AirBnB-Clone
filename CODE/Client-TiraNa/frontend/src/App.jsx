@@ -1,20 +1,25 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
-import Homepage from './pages/Homepage.jsx'
-import AllProperties from './pages/AllProperties.jsx'
-import Signup from './pages/Signup.jsx'
-import Signin from './pages/Signin.jsx'
-import ForgotPassword from './pages/ForgotPassword.jsx'
-import ResetPassword from './pages/ResetPassword.jsx'
-import Profile from './pages/Profile.jsx'
-import PropertyDetails from './pages/PropertyDetails.jsx'
-import Booking from './pages/Booking.jsx'
-import About from './pages/About.jsx'
-import Notifications from './pages/Notifications.jsx'
-import MyBookings from './pages/MyBookings.jsx'
-import Reviews from './pages/Reviews.jsx'
-import SavedProperties from './pages/SavedProperties.jsx'
-import HostProfile from './pages/HostProfile.jsx'
+import Footer from './components/Footer.jsx'
+import Loading from './components/Loading.jsx'
+
+const Homepage = lazy(() => import('./pages/Homepage.jsx'))
+const AllProperties = lazy(() => import('./pages/AllProperties.jsx'))
+const Signup = lazy(() => import('./pages/Signup.jsx'))
+const Signin = lazy(() => import('./pages/Signin.jsx'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'))
+const Profile = lazy(() => import('./pages/Profile.jsx'))
+const PropertyDetails = lazy(() => import('./pages/PropertyDetails.jsx'))
+const Booking = lazy(() => import('./pages/Booking.jsx'))
+const About = lazy(() => import('./pages/About.jsx'))
+const Notifications = lazy(() => import('./pages/Notifications.jsx'))
+const MyBookings = lazy(() => import('./pages/MyBookings.jsx'))
+const Reviews = lazy(() => import('./pages/Reviews.jsx'))
+const SavedProperties = lazy(() => import('./pages/SavedProperties.jsx'))
+const HostProfile = lazy(() => import('./pages/HostProfile.jsx'))
+
+const noFooterRoutes = ['/client/signup', '/client/signin', '/client/forgot-password', '/client/reset-password']
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -23,27 +28,33 @@ function ScrollToTop() {
 }
 
 function App() {
+  const { pathname } = useLocation()
+  const showFooter = !noFooterRoutes.some(r => pathname.startsWith(r))
+
   return (
-    <>
-      <ScrollToTop />
-      <Routes>
-      <Route path="/" element={<Homepage />} />
-      <Route path="/properties" element={<AllProperties />} />
-      <Route path="/properties/:id" element={<PropertyDetails />} />
-      <Route path="/client/signup" element={<Signup />} />
-      <Route path="/client/signin" element={<Signin />} />
-      <Route path="/client/forgot-password" element={<ForgotPassword />} />
-      <Route path="/client/reset-password" element={<ResetPassword />} />
-        <Route path="/client/profile" element={<Profile />} />
-        <Route path="/client/notifications" element={<Notifications />} />
-        <Route path="/bookings" element={<MyBookings />} />
-        <Route path="/bookings/:id/new" element={<Booking />} />
-        <Route path="/reviews" element={<Reviews />} />
-        <Route path="/saved" element={<SavedProperties />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/hosts/:id" element={<HostProfile />} />
-    </Routes>
-    </>
+    <div className="flex flex-col min-h-screen bg-white">
+      <Suspense fallback={<Loading />}>
+        <ScrollToTop />
+        <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/properties" element={<AllProperties />} />
+          <Route path="/properties/:id" element={<PropertyDetails />} />
+          <Route path="/client/signup" element={<Signup />} />
+          <Route path="/client/signin" element={<Signin />} />
+          <Route path="/client/forgot-password" element={<ForgotPassword />} />
+          <Route path="/client/reset-password" element={<ResetPassword />} />
+          <Route path="/client/profile" element={<Profile />} />
+          <Route path="/client/notifications" element={<Notifications />} />
+          <Route path="/bookings" element={<MyBookings />} />
+          <Route path="/bookings/:id/new" element={<Booking />} />
+          <Route path="/reviews" element={<Reviews />} />
+          <Route path="/saved" element={<SavedProperties />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/hosts/:id" element={<HostProfile />} />
+        </Routes>
+      </Suspense>
+      {showFooter && <Footer />}
+    </div>
   )
 }
 

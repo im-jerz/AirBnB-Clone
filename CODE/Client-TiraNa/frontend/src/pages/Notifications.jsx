@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header.jsx'
-import Footer from '../components/Footer.jsx'
 
 const API = 'http://localhost:5000/api/notifications'
 
@@ -184,9 +183,10 @@ function Notifications() {
   const unreadCount = notifications.filter(n => !n.is_read).length
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white">
       <Header />
 
+      <div className="flex-1">
       <section className="bg-gradient-to-br from-charcoal via-teal to-charcoal pt-28 sm:pt-36 pb-20 sm:pb-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -215,11 +215,7 @@ function Notifications() {
             </div>
           )}
 
-          {loading && notifications.length === 0 ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-6 h-6 border-2 border-sage border-t-transparent animate-spin" />
-            </div>
-          ) : notifications.length === 0 ? (
+          {notifications.length === 0 ? (
             <div className="text-center py-20">
               <BellIcon />
               <p className="text-gray-400 text-sm mt-4">No notifications yet</p>
@@ -306,7 +302,7 @@ function Notifications() {
           )}
         </div>
       </section>
-      <Footer />
+      </div>
     </div>
   )
 }
