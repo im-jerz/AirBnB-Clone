@@ -12,6 +12,9 @@ import DashboardHome from './pages/DashboardHome'
 import PropertyManagement from './pages/properties/PropertyManagement'
 import AddEditProperty from './pages/properties/AddEditProperty'
 import BookingsPage from './pages/bookings/BookingsPage'
+import GuestManagement from './pages/guests/GuestManagement'
+import ReviewsPage from './pages/reviews/ReviewsPage'
+import RevenuePage from './pages/revenue/RevenuePage'
 
 // sessionStorage key used to mark "the last navigation came from inside
 // the app, via handleNavigate" — see RequireInternalNav below. Cleared
@@ -127,6 +130,9 @@ function AuthRoutes() {
         <Route path="properties/new" element={<AddEditProperty />} />
         <Route path="properties/:id/edit" element={<AddEditProperty />} />
         <Route path="bookings" element={<BookingsPage />} />
+        <Route path="guests" element={<GuestManagement />} />
+        <Route path="reviews" element={<ReviewsPage />} />
+        <Route path="revenue" element={<RevenuePage />} />
       </Route>
 
       {/* Anything unrecognized falls back to sign-in */}
