@@ -11,6 +11,7 @@ const PAGE_META = {
   "/dashboard/bookings": { eyebrow: "Operations", title: "Bookings" },
   "/dashboard/guests": { eyebrow: "Operations", title: "Guests" },
   "/dashboard/revenue": { eyebrow: "Earnings", title: "Revenue" },
+  "/dashboard/notifications": { eyebrow: "Activity", title: "Notifications" },
   "/dashboard/wallet": { eyebrow: "Earnings", title: "Wallet & Payouts" },
   "/dashboard/reviews": { eyebrow: "Engagement", title: "Reviews" },
   "/dashboard/messages": { eyebrow: "Engagement", title: "Messages" },
