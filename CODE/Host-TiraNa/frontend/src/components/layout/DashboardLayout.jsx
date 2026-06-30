@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import MobileTabBar from "./MobileTabBar";
+import NotificationToast from "../common/NotificationToast";
 
 const PAGE_META = {
   "/dashboard": { eyebrow: "Overview", title: "Dashboard" },
@@ -50,6 +51,7 @@ export default function DashboardLayout() {
       </div>
 
       <MobileTabBar />
+      <NotificationToast />
     </div>
   );
 }

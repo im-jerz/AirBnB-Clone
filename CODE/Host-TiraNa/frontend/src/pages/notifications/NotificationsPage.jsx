@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
+import { resolveNotificationLink } from "../../utils/notificationLinks";
 import "../../styles/notifications.css";
 
 /* ─── SVG Icons (inline, no emoji) ────────────────────────── */
@@ -47,6 +48,14 @@ const IconPayment = (p) => (
     <rect x="3" y="6" width="18" height="13" rx="2" />
     <path d="M3 10h18" />
     <circle cx="16.5" cy="14" r="1.25" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+const IconRefund = (p) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...p}>
+    <path d="M3 12a9 9 0 1 0 3-6.7" />
+    <path d="M3 4v5h5" />
+    <path d="M12 8v4l3 2" />
   </svg>
 );
 
@@ -124,6 +133,8 @@ const TYPE_CONFIG = {
   new_booking:       { icon: IconBookingNew,      label: "Booking Request",   cat: "bookings",  color: "accent"  },
   booking_confirmed: { icon: IconBookingConfirmed, label: "Booking Confirmed", cat: "bookings",  color: "success" },
   booking_cancelled: { icon: IconCancelled,        label: "Booking Cancelled", cat: "bookings",  color: "danger"  },
+  refund_requested:  { icon: IconRefund,           label: "Refund Requested",  cat: "bookings",  color: "danger"  },
+  refund_completed:  { icon: IconRefund,           label: "Refund Completed",  cat: "bookings",  color: "success" },
   guest_checkin:     { icon: IconCheckIn,          label: "Guest Checked In",  cat: "stays",     color: "info"    },
   guest_checkout:    { icon: IconCheckOut,         label: "Guest Checked Out", cat: "stays",     color: "muted"   },
   new_review:        { icon: IconReview,           label: "New Review",        cat: "reviews",   color: "gold"    },
@@ -143,6 +154,7 @@ const CATEGORIES = [
   { key: "earnings", label: "Earnings" },
   { key: "reviews",  label: "Reviews" },
   { key: "listings", label: "Listings" },
+  { key: "support",  label: "Support" },
   { key: "system",   label: "System" },
 ];
 
@@ -178,10 +190,11 @@ function groupByDay(notifications) {
 function NotificationItem({ item, onRead, onNavigate }) {
   const config = TYPE_CONFIG[item.type] || TYPE_CONFIG.announcement;
   const IconComp = config.icon;
+  const link = resolveNotificationLink(item);
 
   function handleClick() {
     if (!item.is_read) onRead(item.id);
-    if (item.link) onNavigate(item.link);
+    onNavigate(link);
   }
 
   return (
@@ -208,7 +221,7 @@ function NotificationItem({ item, onRead, onNavigate }) {
         </div>
         <p className="ntf-title">{item.title}</p>
         <p className="ntf-body">{item.body}</p>
-        {item.link && (
+        {link && (
           <span className="ntf-cta">
             View details
             <IconChevronRight />
@@ -278,7 +291,7 @@ export default function NotificationsPage() {
         prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
       );
     } catch {
-      // silent — UI already updated optimistically if needed
+      // silent
     }
   }
 
@@ -289,6 +302,10 @@ export default function NotificationsPage() {
     } catch {
       // silent
     }
+  }
+
+  function handleNavigate(link) {
+    if (link) navigate(link);
   }
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
@@ -392,7 +409,7 @@ export default function NotificationsPage() {
                     key={item.id}
                     item={item}
                     onRead={markRead}
-                    onNavigate={(link) => navigate(link)}
+                    onNavigate={handleNavigate}
                   />
                 ))}
               </div>

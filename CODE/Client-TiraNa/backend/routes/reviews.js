@@ -30,6 +30,10 @@ async function getHostId(propertyId) {
   }
 }
 
+/**
+ * relatedId should be the CockroachDB review id, so the host dashboard
+ * can deep-link straight to /dashboard/reviews?highlight=<id>.
+ */
 async function notifyHost({ hostId, type, title, body, relatedType = 'review', relatedId = null }) {
   if (!hostId) return
   try {
@@ -108,7 +112,9 @@ router.post('/', authMiddleware, async (req, res) => {
       [booking_id, req.user.id, b.property_id, overallRating, review_text || '', accuracy ?? null, check_in ?? null, cleanliness ?? null, communication ?? null, location ?? null, value ?? null]
     )
 
-    res.status(201).json({ message: 'Review submitted successfully', data: result.rows[0] })
+    const review = result.rows[0]
+
+    res.status(201).json({ message: 'Review submitted successfully', data: review })
 
     // async: notify host
     ;(async () => {
@@ -119,9 +125,10 @@ router.post('/', authMiddleware, async (req, res) => {
         ])
         await notifyHost({
           hostId,
-          type:  'new_review',
-          title: 'New Review Received',
-          body:  `${guestName} left a ${overallRating}-star review on your property.`,
+          type:      'new_review',
+          title:     'New Review Received',
+          body:      `${guestName} left a ${overallRating}-star review on your property.`,
+          relatedId: review.id,
         })
       } catch (err) {
         console.error('Review create notification error:', err.message)
@@ -284,9 +291,10 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
         await notifyHost({
           hostId,
-          type:  'review_updated',
-          title: 'Review Updated',
-          body:  `${guestName} updated their ${finalRating}-star review on your property.`,
+          type:      'review_updated',
+          title:     'Review Updated',
+          body:      `${guestName} updated their ${finalRating}-star review on your property.`,
+          relatedId: existing.rows[0].id,
         })
       } catch (err) {
         console.error('Review update notification error:', err.message)

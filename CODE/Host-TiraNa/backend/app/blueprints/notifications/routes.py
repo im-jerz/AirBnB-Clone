@@ -35,7 +35,7 @@ def create_notification():
             "title":        <str>,
             "body":         <str>,
             "related_type": "booking" | "review" | "payment",   # optional
-            "related_id":   <int>                               # optional
+            "related_id":   <string>                            # optional, can be UUID or int
         }
     """
     data = request.get_json(silent=True) or {}

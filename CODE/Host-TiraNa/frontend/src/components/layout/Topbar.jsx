@@ -2,12 +2,15 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { IconMenu, IconBell } from "../icons";
 import axiosInstance from "../../api/axiosInstance";
+import { resolveNotificationLink } from "../../utils/notificationLinks";
 
 /* ─── Notification type → dot color ────────────────────────── */
 const TYPE_DOT = {
   new_booking:       "accent",
   booking_confirmed: "success",
   booking_cancelled: "danger",
+  refund_requested:  "danger",
+  refund_completed:  "success",
   guest_checkin:     "info",
   guest_checkout:    "muted",
   new_review:        "gold",
@@ -29,7 +32,7 @@ function timeAgo(dateStr) {
 }
 
 /* ─── Dropdown panel ───────────────────────────────────────── */
-function NotifDropdown({ items, unreadCount, onClose, onSeeAll }) {
+function NotifDropdown({ items, unreadCount, onClose, onSeeAll, onItemClick }) {
   return (
     <div className="topbar-notif-dropdown" role="dialog" aria-label="Recent notifications">
       <div className="topbar-notif-dropdown-header">
@@ -50,7 +53,7 @@ function NotifDropdown({ items, unreadCount, onClose, onSeeAll }) {
               key={item.id}
               type="button"
               className={`topbar-notif-item${item.is_read ? "" : " topbar-notif-item--unread"}`}
-              onClick={onClose}
+              onClick={() => onItemClick(item)}
             >
               <span
                 className={`topbar-notif-item-dot topbar-notif-item-dot--${TYPE_DOT[item.type] || "muted"}`}
@@ -85,7 +88,6 @@ export default function Topbar({ eyebrow, title, onMenuClick, hostInitial = "H",
   const dropdownRef = useRef(null);
   const bellBtnRef = useRef(null);
 
-  // Fetch unread count on mount and every 60s
   const fetchUnreadCount = useCallback(async () => {
     try {
       const { data } = await axiosInstance.get("/api/notifications/unread-count");
@@ -101,7 +103,6 @@ export default function Topbar({ eyebrow, title, onMenuClick, hostInitial = "H",
     return () => clearInterval(interval);
   }, [fetchUnreadCount]);
 
-  // Fetch latest 5 notifications when dropdown opens
   async function fetchPreview() {
     try {
       const { data } = await axiosInstance.get("/api/notifications?page=1&per_page=5");
@@ -117,7 +118,6 @@ export default function Topbar({ eyebrow, title, onMenuClick, hostInitial = "H",
     if (opening) fetchPreview();
   }
 
-  // Close on outside click
   useEffect(() => {
     if (!dropdownOpen) return;
     function handleClickOutside(e) {
@@ -132,7 +132,6 @@ export default function Topbar({ eyebrow, title, onMenuClick, hostInitial = "H",
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropdownOpen]);
 
-  // Close on Escape
   useEffect(() => {
     if (!dropdownOpen) return;
     function handleKey(e) {
@@ -147,6 +146,18 @@ export default function Topbar({ eyebrow, title, onMenuClick, hostInitial = "H",
     navigate("/dashboard/notifications");
   }
 
+  async function handleItemClick(item) {
+    setDropdownOpen(false);
+
+    // Mark as read in the background, don't block navigation on it.
+    if (!item.is_read) {
+      axiosInstance.put(`/api/notifications/${item.id}/read`).catch(() => {});
+    }
+
+    const link = resolveNotificationLink(item);
+    navigate(link || "/dashboard/notifications");
+  }
+
   return (
     <header className="topbar">
       <button type="button" className="topbar-menu-btn" onClick={onMenuClick} aria-label="Toggle navigation">
@@ -159,7 +170,6 @@ export default function Topbar({ eyebrow, title, onMenuClick, hostInitial = "H",
       </div>
 
       <div className="topbar-actions">
-        {/* Bell button with dropdown */}
         <div className="topbar-notif-wrapper">
           <button
             ref={bellBtnRef}
@@ -182,6 +192,7 @@ export default function Topbar({ eyebrow, title, onMenuClick, hostInitial = "H",
                 unreadCount={unreadCount}
                 onClose={() => setDropdownOpen(false)}
                 onSeeAll={handleSeeAll}
+                onItemClick={handleItemClick}
               />
             </div>
           )}

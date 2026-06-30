@@ -9,7 +9,8 @@ Schema (from host_database.sql):
         title        VARCHAR2(255),
         body         CLOB,
         related_type VARCHAR2(50),   -- 'booking','review','payment','support_ticket'
-        related_id   NUMBER,
+        related_id   VARCHAR2(64),   -- string, NOT a number: Client side (CockroachDB)
+                                      -- uses UUIDs for booking/review primary keys.
         is_read      NUMBER(1) DEFAULT 0,
         created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
@@ -33,7 +34,7 @@ class Notification(db.Model):
     title        = db.Column(db.String(255))
     body         = db.Column(db.Text)
     related_type = db.Column(db.String(50))   # 'booking' | 'review' | 'payment'
-    related_id   = db.Column(db.Integer)
+    related_id   = db.Column(db.String(64))   # CockroachDB UUID (or any id), stored as text
     is_read      = db.Column(db.Integer, default=0)   # Oracle NUMBER(1)
     created_at   = db.Column(db.DateTime, default=datetime.utcnow)
 
