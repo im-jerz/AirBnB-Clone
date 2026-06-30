@@ -1,4 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../api/axiosInstance";
 import "../../styles/notifications.css";
 
 /* ─── SVG Icons (inline, no emoji) ────────────────────────── */
@@ -119,166 +121,20 @@ const IconChevronRight = (p) => (
 
 /* ─── Notification type config ─────────────────────────────── */
 const TYPE_CONFIG = {
-  booking_request:   { icon: IconBookingNew,       label: "Booking Request",    cat: "bookings",  color: "accent"   },
-  booking_confirmed: { icon: IconBookingConfirmed,  label: "Booking Confirmed",  cat: "bookings",  color: "success"  },
-  booking_cancelled: { icon: IconCancelled,         label: "Booking Cancelled",  cat: "bookings",  color: "danger"   },
-  guest_checkin:     { icon: IconCheckIn,           label: "Guest Checked In",   cat: "stays",     color: "info"     },
-  guest_checkout:    { icon: IconCheckOut,          label: "Guest Checked Out",  cat: "stays",     color: "muted"    },
-  review_received:   { icon: IconReview,            label: "New Review",         cat: "reviews",   color: "gold"     },
-  payment_credited:  { icon: IconPayment,           label: "Payment Credited",   cat: "earnings",  color: "success"  },
-  withdrawal_done:   { icon: IconWithdrawal,        label: "Withdrawal Done",    cat: "earnings",  color: "success"  },
-  listing_approved:  { icon: IconApproval,          label: "Listing Approved",   cat: "listings",  color: "success"  },
-  listing_rejected:  { icon: IconRejection,         label: "Listing Rejected",   cat: "listings",  color: "danger"   },
-  support_update:    { icon: IconSupport,           label: "Support Update",     cat: "support",   color: "info"     },
-  announcement:      { icon: IconAnnouncement,      label: "Announcement",       cat: "system",    color: "muted"    },
+  new_booking:       { icon: IconBookingNew,      label: "Booking Request",   cat: "bookings",  color: "accent"  },
+  booking_confirmed: { icon: IconBookingConfirmed, label: "Booking Confirmed", cat: "bookings",  color: "success" },
+  booking_cancelled: { icon: IconCancelled,        label: "Booking Cancelled", cat: "bookings",  color: "danger"  },
+  guest_checkin:     { icon: IconCheckIn,          label: "Guest Checked In",  cat: "stays",     color: "info"    },
+  guest_checkout:    { icon: IconCheckOut,         label: "Guest Checked Out", cat: "stays",     color: "muted"   },
+  new_review:        { icon: IconReview,           label: "New Review",        cat: "reviews",   color: "gold"    },
+  review_updated:    { icon: IconReview,           label: "Review Updated",    cat: "reviews",   color: "gold"    },
+  payment_credited:  { icon: IconPayment,          label: "Payment Credited",  cat: "earnings",  color: "success" },
+  withdrawal_done:   { icon: IconWithdrawal,       label: "Withdrawal Done",   cat: "earnings",  color: "success" },
+  listing_approved:  { icon: IconApproval,         label: "Listing Approved",  cat: "listings",  color: "success" },
+  listing_rejected:  { icon: IconRejection,        label: "Listing Rejected",  cat: "listings",  color: "danger"  },
+  support_update:    { icon: IconSupport,          label: "Support Update",    cat: "support",   color: "info"    },
+  announcement:      { icon: IconAnnouncement,     label: "Announcement",      cat: "system",    color: "muted"   },
 };
-
-/* ─── Mock data ─────────────────────────────────────────────── */
-const MOCK_NOTIFICATIONS = [
-  {
-    id: 1,
-    type: "booking_request",
-    read: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 8),
-    title: "New booking request from Maria Santos",
-    body: "3 nights · Baguio Country Villa · ₱12,600 total",
-    meta: "Check-in: Jul 15 — Jul 18, 2026",
-    link: "/dashboard/bookings",
-    linkLabel: "Review Request",
-  },
-  {
-    id: 2,
-    type: "booking_request",
-    read: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 32),
-    title: "New booking request from Jose Reyes",
-    body: "2 nights · Tagaytay Garden Suite · ₱8,400 total",
-    meta: "Check-in: Jul 20 — Jul 22, 2026",
-    link: "/dashboard/bookings",
-    linkLabel: "Review Request",
-  },
-  {
-    id: 3,
-    type: "payment_credited",
-    read: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 55),
-    title: "₱18,900 has been credited to your wallet",
-    body: "Payment for booking #BK-20241 · Ana Cruz stay completed",
-    meta: "Available for withdrawal now",
-    link: "/dashboard/wallet",
-    linkLabel: "View Wallet",
-  },
-  {
-    id: 4,
-    type: "guest_checkin",
-    read: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    title: "Your guest has checked in",
-    body: "Karen Lim · Cebu Heritage House",
-    meta: "Staying until Jul 10, 2026",
-    link: "/dashboard/bookings",
-    linkLabel: "View Booking",
-  },
-  {
-    id: 5,
-    type: "review_received",
-    read: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
-    title: "You received a 5-star review",
-    body: '"The place was immaculate and the host was incredibly responsive." — Lito Mendoza',
-    meta: "Tagaytay Garden Suite",
-    link: "/dashboard/reviews",
-    linkLabel: "See Review",
-  },
-  {
-    id: 6,
-    type: "listing_approved",
-    read: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 9),
-    title: "Your listing has been approved",
-    body: "Palawan Beachfront Nipa Hut is now live and searchable",
-    meta: "Approved by admin at 9:14 AM",
-    link: "/dashboard/properties",
-    linkLabel: "View Listing",
-  },
-  {
-    id: 7,
-    type: "guest_checkout",
-    read: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 13),
-    title: "Guest has checked out",
-    body: "Ricardo Tan · Baguio Country Villa",
-    meta: "Booking #BK-20238 completed. Awaiting payment settlement.",
-    link: "/dashboard/bookings",
-    linkLabel: "View Details",
-  },
-  {
-    id: 8,
-    type: "booking_cancelled",
-    read: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 20),
-    title: "Booking was cancelled by guest",
-    body: "Donna Pascual · Tagaytay Garden Suite · Jul 5 — Jul 7",
-    meta: "Refund of ₱7,200 has been processed",
-    link: "/dashboard/bookings",
-    linkLabel: "View Booking",
-  },
-  {
-    id: 9,
-    type: "withdrawal_done",
-    read: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 26),
-    title: "Withdrawal of ₱35,000 processed",
-    body: "Transferred to BDO ···· 4821 · Expected 1–3 banking days",
-    meta: "Reference: WD-20240628-009",
-    link: "/dashboard/wallet",
-    linkLabel: "View Transactions",
-  },
-  {
-    id: 10,
-    type: "support_update",
-    read: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 30),
-    title: "Ticket #TK-0042 has been updated",
-    body: "Admin has responded to your payment dispute",
-    meta: "Status changed: In Review → Resolved",
-    link: "/dashboard/support",
-    linkLabel: "View Ticket",
-  },
-  {
-    id: 11,
-    type: "listing_rejected",
-    read: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48),
-    title: "Your listing was not approved",
-    body: "Davao Mountain Retreat — photos did not meet quality standards",
-    meta: "Reason: Minimum 5 photos required, all must be well-lit",
-    link: "/dashboard/properties",
-    linkLabel: "Edit Listing",
-  },
-  {
-    id: 12,
-    type: "booking_confirmed",
-    read: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 52),
-    title: "Booking automatically confirmed",
-    body: "Ramon Cruz · Cebu Heritage House · Jul 25 — Jul 28",
-    meta: "Instant book was enabled on this listing",
-    link: "/dashboard/bookings",
-    linkLabel: "View Booking",
-  },
-  {
-    id: 13,
-    type: "announcement",
-    read: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72),
-    title: "Platform update: New payout schedule",
-    body: "Starting August 1, payouts will be released every Tuesday and Friday.",
-    meta: "Read the full announcement",
-    link: "/dashboard/settings",
-    linkLabel: "Learn More",
-  },
-];
 
 const CATEGORIES = [
   { key: "all",      label: "All" },
@@ -291,7 +147,8 @@ const CATEGORIES = [
 ];
 
 /* ─── Helpers ───────────────────────────────────────────────── */
-function timeAgo(date) {
+function timeAgo(dateStr) {
+  const date = new Date(dateStr);
   const diff = Math.floor((Date.now() - date.getTime()) / 1000);
   if (diff < 60) return "Just now";
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
@@ -304,7 +161,7 @@ function groupByDay(notifications) {
   const groups = {};
   const now = new Date();
   notifications.forEach((n) => {
-    const d = n.timestamp;
+    const d = new Date(n.created_at);
     const diffDays = Math.floor((now - d) / 86400000);
     let label;
     if (diffDays === 0) label = "Today";
@@ -323,42 +180,40 @@ function NotificationItem({ item, onRead, onNavigate }) {
   const IconComp = config.icon;
 
   function handleClick() {
-    if (!item.read) onRead(item.id);
-    onNavigate(item.link);
+    if (!item.is_read) onRead(item.id);
+    if (item.link) onNavigate(item.link);
   }
 
   return (
     <article
-      className={`ntf-item${item.read ? "" : " ntf-item--unread"}`}
+      className={`ntf-item${item.is_read ? "" : " ntf-item--unread"}`}
       role="button"
       tabIndex={0}
       aria-label={item.title}
       onClick={handleClick}
       onKeyDown={(e) => e.key === "Enter" && handleClick()}
     >
-      {/* Unread pulse dot */}
-      {!item.read && <span className="ntf-unread-dot" aria-hidden="true" />}
+      {!item.is_read && <span className="ntf-unread-dot" aria-hidden="true" />}
 
-      {/* Icon badge */}
       <div className={`ntf-icon-wrap ntf-icon-wrap--${config.color}`}>
         <IconComp />
       </div>
 
-      {/* Content */}
       <div className="ntf-content">
         <div className="ntf-content-top">
           <span className="ntf-type-label">{config.label}</span>
-          <time className="ntf-time" dateTime={item.timestamp.toISOString()}>
-            {timeAgo(item.timestamp)}
+          <time className="ntf-time" dateTime={item.created_at}>
+            {timeAgo(item.created_at)}
           </time>
         </div>
         <p className="ntf-title">{item.title}</p>
         <p className="ntf-body">{item.body}</p>
-        {item.meta && <p className="ntf-meta">{item.meta}</p>}
-        <span className="ntf-cta">
-          {item.linkLabel}
-          <IconChevronRight />
-        </span>
+        {item.link && (
+          <span className="ntf-cta">
+            View details
+            <IconChevronRight />
+          </span>
+        )}
       </div>
     </article>
   );
@@ -382,17 +237,68 @@ function EmptyState({ category }) {
 
 /* ─── Page ──────────────────────────────────────────────────── */
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [activeCategory, setActiveCategory] = useState("all");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const fetchNotifications = useCallback(async (p = 1) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await axiosInstance.get(
+        `/api/notifications?page=${p}&per_page=50`
+      );
+      setNotifications(data.data.notifications);
+      setTotalPages(data.data.pages);
+      setPage(p);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        navigate("/signin");
+      } else {
+        setError("Failed to load notifications.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    fetchNotifications(1);
+  }, [fetchNotifications]);
+
+  async function markRead(id) {
+    try {
+      await axiosInstance.put(`/api/notifications/${id}/read`);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+      );
+    } catch {
+      // silent — UI already updated optimistically if needed
+    }
+  }
+
+  async function markAllRead() {
+    try {
+      await axiosInstance.put("/api/notifications/read-all");
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    } catch {
+      // silent
+    }
+  }
+
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   const filtered = useMemo(() => {
     return notifications.filter((n) => {
       const catMatch =
-        activeCategory === "all" || TYPE_CONFIG[n.type]?.cat === activeCategory;
-      const readMatch = showUnreadOnly ? !n.read : true;
+        activeCategory === "all" ||
+        TYPE_CONFIG[n.type]?.cat === activeCategory;
+      const readMatch = showUnreadOnly ? !n.is_read : true;
       return catMatch && readMatch;
     });
   }, [notifications, activeCategory, showUnreadOnly]);
@@ -400,23 +306,9 @@ export default function NotificationsPage() {
   const grouped = useMemo(() => groupByDay(filtered), [filtered]);
   const groupKeys = Object.keys(grouped);
 
-  function markRead(id) {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  }
-
-  function markAllRead() {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }
-
-  function handleNavigate(link) {
-    console.log("Navigate to:", link);
-  }
-
   return (
     <div className="ntf-page">
-      {/* ── Header — plain, matching other pages ── */}
+      {/* ── Header ── */}
       <header className="ntf-header">
         <div className="ntf-header-left">
           <h1 className="ntf-header-title">Notifications</h1>
@@ -454,7 +346,7 @@ export default function NotificationsPage() {
               cat.key === "all"
                 ? unreadCount
                 : notifications.filter(
-                    (n) => !n.read && TYPE_CONFIG[n.type]?.cat === cat.key
+                    (n) => !n.is_read && TYPE_CONFIG[n.type]?.cat === cat.key
                   ).length;
             return (
               <button
@@ -466,9 +358,7 @@ export default function NotificationsPage() {
                 onClick={() => setActiveCategory(cat.key)}
               >
                 {cat.label}
-                {catCount > 0 && (
-                  <span className="ntf-tab-badge">{catCount}</span>
-                )}
+                {catCount > 0 && <span className="ntf-tab-badge">{catCount}</span>}
               </button>
             );
           })}
@@ -477,7 +367,18 @@ export default function NotificationsPage() {
 
       {/* ── Notification list ── */}
       <div className="ntf-list">
-        {groupKeys.length === 0 ? (
+        {loading ? (
+          <div className="ntf-empty">
+            <p className="ntf-empty-body">Loading notifications…</p>
+          </div>
+        ) : error ? (
+          <div className="ntf-empty">
+            <p className="ntf-empty-body">{error}</p>
+            <button type="button" className="ntf-mark-all-btn" onClick={() => fetchNotifications(page)}>
+              Retry
+            </button>
+          </div>
+        ) : groupKeys.length === 0 ? (
           <EmptyState category={activeCategory} />
         ) : (
           groupKeys.map((groupLabel) => (
@@ -491,7 +392,7 @@ export default function NotificationsPage() {
                     key={item.id}
                     item={item}
                     onRead={markRead}
-                    onNavigate={handleNavigate}
+                    onNavigate={(link) => navigate(link)}
                   />
                 ))}
               </div>
@@ -499,6 +400,29 @@ export default function NotificationsPage() {
           ))
         )}
       </div>
+
+      {/* ── Pagination ── */}
+      {totalPages > 1 && (
+        <div className="ntf-pagination">
+          <button
+            type="button"
+            disabled={page <= 1}
+            onClick={() => fetchNotifications(page - 1)}
+            className="ntf-page-btn"
+          >
+            Previous
+          </button>
+          <span className="ntf-page-info">Page {page} of {totalPages}</span>
+          <button
+            type="button"
+            disabled={page >= totalPages}
+            onClick={() => fetchNotifications(page + 1)}
+            className="ntf-page-btn"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }
