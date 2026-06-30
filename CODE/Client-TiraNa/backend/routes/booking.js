@@ -4,6 +4,7 @@ import pool from '../db.js'
 
 const router = Router()
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret'
+const HOST_API_URL = (process.env.HOST_API_URL || 'http://localhost:8000').replace(/\/$/, '')
 
 function authMiddleware(req, res, next) {
   const header = req.headers.authorization
@@ -15,6 +16,38 @@ function authMiddleware(req, res, next) {
     next()
   } catch {
     return res.status(401).json({ error: 'Invalid or expired token' })
+  }
+}
+
+/**
+ * Fetch the host_id for a given property from the host backend.
+ * Returns null on any failure so we never block the main flow.
+ */
+async function getHostId(propertyId) {
+  try {
+    const resp = await fetch(`${HOST_API_URL}/api/internal/property-host/${propertyId}`)
+    if (!resp.ok) return null
+    const payload = await resp.json()
+    return payload?.host_id ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Send a notification to the host backend. Fire-and-forget.
+ */
+async function notifyHost({ hostId, type, title, body, relatedType = 'booking', relatedId = null }) {
+  if (!hostId) return
+  try {
+    const resp = await fetch(`${HOST_API_URL}/api/notifications/internal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ host_id: hostId, type, title, body, related_type: relatedType, related_id: relatedId }),
+    })
+    if (!resp.ok) console.error('Host notification failed:', await resp.text())
+  } catch (err) {
+    console.error('Could not reach host API for notification:', err.message)
   }
 }
 
@@ -71,10 +104,44 @@ router.post('/', authMiddleware, async (req, res) => {
 
     const booking = result.rows[0]
 
+    // Respond to the client immediately — notification is async
     res.status(201).json({
       message: 'Booking created successfully',
       data: { id: booking.id, created_at: booking.created_at },
     })
+
+    // --- async: notify host ---
+    ;(async () => {
+      try {
+        const [guestRow, hostId] = await Promise.all([
+          pool.query(
+            `SELECT u.username,
+                    COALESCE(p.first_name, '') AS first_name,
+                    COALESCE(p.last_name, '')  AS last_name
+             FROM client_users u
+             LEFT JOIN personal_information p ON p.user_id = u.id
+             WHERE u.id = $1`,
+            [req.user.id]
+          ),
+          getHostId(property_id),
+        ])
+
+        const g = guestRow.rows[0] || {}
+        const guestName = [g.first_name, g.last_name].filter(Boolean).join(' ') || g.username || 'A guest'
+        const ciStr = new Date(check_in).toLocaleDateString('en-PH',  { month: 'short', day: 'numeric', year: 'numeric' })
+        const coStr = new Date(check_out).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
+
+        await notifyHost({
+          hostId,
+          type:  'new_booking',
+          title: 'New Booking Request',
+          body:  `${guestName} has requested to book your property from ${ciStr} to ${coStr}.`,
+        })
+      } catch (err) {
+        console.error('Booking notification error:', err.message)
+      }
+    })()
+
   } catch (err) {
     console.error('Booking error:', err)
     res.status(500).json({ error: 'Internal server error' })
@@ -104,13 +171,45 @@ router.patch('/:id/cancel', authMiddleware, async (req, res) => {
     const result = await pool.query(
       `UPDATE bookings SET status = 'cancelled'
        WHERE id = $1 AND user_id = $2 AND status IN ('pending', 'confirmed')
-       RETURNING id, status`,
+       RETURNING id, status, property_id`,
       [id, req.user.id]
     )
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Booking not found or cannot be cancelled' })
     }
-    res.json({ message: 'Booking cancelled successfully', data: result.rows[0] })
+
+    res.json({ message: 'Booking cancelled successfully', data: { id: result.rows[0].id, status: result.rows[0].status } })
+
+    // --- async: notify host ---
+    ;(async () => {
+      try {
+        const { property_id } = result.rows[0]
+        const [guestRow, hostId] = await Promise.all([
+          pool.query(
+            `SELECT u.username,
+                    COALESCE(p.first_name, '') AS first_name,
+                    COALESCE(p.last_name, '')  AS last_name
+             FROM client_users u
+             LEFT JOIN personal_information p ON p.user_id = u.id
+             WHERE u.id = $1`,
+            [req.user.id]
+          ),
+          getHostId(property_id),
+        ])
+        const g = guestRow.rows[0] || {}
+        const guestName = [g.first_name, g.last_name].filter(Boolean).join(' ') || g.username || 'A guest'
+
+        await notifyHost({
+          hostId,
+          type:  'booking_cancelled',
+          title: 'Booking Cancelled',
+          body:  `${guestName} has cancelled their booking request.`,
+        })
+      } catch (err) {
+        console.error('Cancel notification error:', err.message)
+      }
+    })()
+
   } catch (err) {
     console.error('Cancel booking error:', err)
     res.status(500).json({ error: 'Internal server error' })
