@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import { IconMenu, IconBell } from "../icons";
 
 export default function Topbar({ eyebrow, title, onMenuClick, hostInitial = "J", hostName = "Juan Dela Cruz" }) {
+  const navigate = useNavigate();
+
   return (
     <header className="topbar">
       <button type="button" className="topbar-menu-btn" onClick={onMenuClick} aria-label="Toggle navigation">
@@ -17,7 +20,12 @@ export default function Topbar({ eyebrow, title, onMenuClick, hostInitial = "J",
           <IconBell />
           <span className="topbar-icon-dot" />
         </button>
-        <button type="button" className="topbar-profile">
+        <button
+          type="button"
+          className="topbar-profile"
+          onClick={() => navigate("/dashboard/settings")}
+          aria-label="Go to profile settings"
+        >
           <span className="topbar-avatar">{hostInitial}</span>
           <span className="topbar-profile-name">{hostName}</span>
         </button>
