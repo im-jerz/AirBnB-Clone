@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { IconCalendar, IconCheck, IconX, IconUser, IconMapPin, IconClock, IconMoney } from "../../components/icons";
 import SkeletonGrid from "../../components/property/SkeletonGrid";
 import ConfirmModal from "../../components/common/ConfirmModal";
@@ -56,7 +57,7 @@ function resolveUrl(path) {
   return `${CLIENT_API_URL}${path}`;
 }
 
-function BookingCard({ booking, onConfirm, onCancel, onCompleteRefund }) {
+function BookingCard({ booking, onConfirm, onCancel, onCompleteRefund, isHighlighted }) {
   const b = booking;
   const guest = b.guest || {};
   const nights = nightsBetween(b.check_in, b.check_out);
@@ -65,7 +66,10 @@ function BookingCard({ booking, onConfirm, onCancel, onCompleteRefund }) {
   const isRefundRequested = status === "refund_requested";
 
   return (
-    <article className="booking-card">
+    <article
+      id={`booking-${b.id}`}
+      className={`booking-card${isHighlighted ? " deep-link-highlight" : ""}`}
+    >
       <div className="booking-card-header">
         <div className="booking-card-guest">
           <div className="booking-card-avatar">
@@ -153,10 +157,14 @@ function BookingCard({ booking, onConfirm, onCancel, onCompleteRefund }) {
 export default function BookingsPage() {
   const { bookings, stats, loading, error, confirm, cancel, completeRefund } = useBookingsData();
   const { push } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeFilter, setActiveFilter] = useState("all");
   const [pendingAction, setPendingAction] = useState(null);
   const [busy, setBusy] = useState(false);
+
+  const highlightId = searchParams.get("highlight");
+  const scrolledRef = useRef(false);
 
   const counts = useMemo(() => {
     const c = { all: bookings.length };
@@ -166,6 +174,29 @@ export default function BookingsPage() {
     }
     return c;
   }, [bookings]);
+
+  // When arriving via a notification deep-link, switch to the "All" filter
+  // so the highlighted booking is guaranteed to be visible regardless of
+  // its status, then scroll it into view once the list has data.
+  useEffect(() => {
+    if (highlightId) setActiveFilter("all");
+  }, [highlightId]);
+
+  useEffect(() => {
+    if (!highlightId || loading || scrolledRef.current) return;
+    const el = document.getElementById(`booking-${highlightId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      scrolledRef.current = true;
+      // Clear the query param after a moment so refreshing doesn't keep
+      // re-triggering the highlight animation.
+      const t = window.setTimeout(() => {
+        searchParams.delete("highlight");
+        setSearchParams(searchParams, { replace: true });
+      }, 2500);
+      return () => window.clearTimeout(t);
+    }
+  }, [highlightId, loading, bookings, searchParams, setSearchParams]);
 
   const visible = useMemo(() => {
     if (activeFilter === "all") return bookings;
@@ -298,6 +329,7 @@ export default function BookingsPage() {
               onConfirm={handleConfirmRequest}
               onCancel={handleCancelRequest}
               onCompleteRefund={handleCompleteRefundRequest}
+              isHighlighted={String(b.id) === String(highlightId)}
             />
           ))}
         </div>
